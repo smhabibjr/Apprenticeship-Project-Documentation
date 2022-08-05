@@ -3,7 +3,7 @@ Back in 2019, I joined ACS Systemhaus GmbH in Germany as an Intern student in th
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Projects
-- [Checklist Management](https://www.habibjr.com/)
+- [Checklist Management](https://github.com/smhabibjr/Apprenticeship-Project-Documentation/blob/main/ChecklistManagement.md)
 - [www.habibjr.com](https://www.habibjr.com/)
 - [Linting Setup](#linting-setup)
 - [Contact](#contact)
