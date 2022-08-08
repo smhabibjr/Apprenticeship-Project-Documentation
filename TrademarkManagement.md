@@ -19,6 +19,12 @@
 
 ## Technologies and Programming Languages
 
+Frontend: [HAML](https://haml.info/), [Bootstrap](https://getbootstrap.com/)
+
+Backend: [Ruby](https://www.ruby-lang.org/de/)
+
+Framework: [Ruby on Rails](https://rubyonrails.org/)
+
 ## Frontend Design with HAML and Bootstrap
 
 ````haml
