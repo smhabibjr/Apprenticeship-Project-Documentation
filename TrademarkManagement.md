@@ -9,7 +9,7 @@
 - [Project Description](#project-description)
 - [Technologies and Programing Languages](#technologies-and-programming-languages)
 - Frontend Design
-  - [Frontend Design with HAML and Bootstrap](frontend_design_with_haml_and_bootstrap)
+  - [Frontend Design with HAML and Bootstrap](#frontend_design_with_haml_and_bootstrap)
 - Backend
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
