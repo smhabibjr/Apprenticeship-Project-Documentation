@@ -22,7 +22,7 @@
 
 Frontend: [HAML](https://haml.info/), [Bootstrap](https://getbootstrap.com/)
 
-Backend: [Ruby](https://www.ruby-lang.org/de/), [PHP](#https://www.php.net)
+Backend: [Ruby](https://www.ruby-lang.org/de/), [PHP](https://www.php.net)
 
 Framework: [Ruby on Rails](https://rubyonrails.org/)
 
