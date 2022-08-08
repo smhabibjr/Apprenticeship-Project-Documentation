@@ -9,6 +9,7 @@
 - [Project Description](#project-description)
 - [Technologies and Programing Languages](#technologies-and-programming-languages)
 - Frontend Design
+  - [Modal Dialog from php](#modal_dialog_from_php)
   - [Frontend Design with HAML and Bootstrap](#frontend_design_with_haml_and_bootstrap)
 - Backend
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
@@ -24,6 +25,39 @@ Frontend: [HAML](https://haml.info/), [Bootstrap](https://getbootstrap.com/)
 Backend: [Ruby](https://www.ruby-lang.org/de/)
 
 Framework: [Ruby on Rails](https://rubyonrails.org/)
+
+## Modal Dialog from php
+
+````php
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Habib
+ * Date: 25.10.2021
+ * Time: 15:19
+ */
+
+chdir(dirname(__FILE__) . "/../../../");
+include_once ("mainfile.php");
+require_once "modules/Werkstatt/wterm15/modalDialog_class.php";
+
+$url = "http://" . $_SERVER["HTTP_HOST"] . ":5050/brand_management";
+
+$prefs = array(
+    "title" => NULL,
+    "body_height" => "700px",
+);
+
+$modal = new modalDialog(
+    "Markenverwaltung",
+    "/eins/html/images/1-wtp_icons_ci/checklisten_hersteller_verwaltung.png",
+    NULL,
+    $url,
+    null,
+    $prefs
+);
+$modal->create("html");
+````
 
 ## Frontend Design with HAML and Bootstrap
 
