@@ -2,8 +2,6 @@
 
 ![image](https://user-images.githubusercontent.com/77357735/183359092-e543def1-480e-44c0-962d-086ab46b95ba.png)
 
-<!-- TABLE OF CONTENTS -->
-
 ## Table of Contents
 
 - [Project Description](#project-description)
@@ -15,7 +13,7 @@
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
 
-<!-- HOW TO RUN -->
+
 ## Project Description
 
 ## Technologies and Programming Languages
@@ -26,7 +24,9 @@ Backend: [Ruby](https://www.ruby-lang.org/de/), [PHP](https://www.php.net)
 
 Framework: [Ruby on Rails](https://rubyonrails.org/)
 
+
 ## Modal Dialog from php
+
 
 ````php
 <?php
@@ -59,7 +59,9 @@ $modal = new modalDialog(
 $modal->create("html");
 ````
 
+
 ## Frontend Design with HAML and Bootstrap
+
 
 ````haml
 `.container
@@ -126,3 +128,13 @@ class BrandManagementController < ApplicationPureBootstrapController
 end
 
 ````
+
+## Contact
+
+Rahman Habib - [habib2030@web.de](mailto:habib2030@web.de)
+
+LinkedIn Profile: [smhabibjr](https://www.linkedin.com/in/smhabibjr)
+
+Youtube Channel: [HabibJr](https://www.youtube.com/c/HabibJr)
+
+Youtube Channel: [HabibJr](https://www.facebook.com/smhabibjr)
