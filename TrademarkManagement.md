@@ -7,8 +7,8 @@
 - [Project Description](#project-description)
 - [Technologies and Programing Languages](#technologies-and-programming-languages)
 - Frontend Design
-  - [Modal Dialog from php](#modal_dialog_from_php)
-  - [Frontend Design with HAML and Bootstrap](#frontend_design_with_haml_and_bootstrap)
+  - [Modal Dialog from php](#modal-dialog-from-php)
+  - [Frontend Design with HAML and Bootstrap](#frontend-design-with-haml-and-bootstrap)
 - Backend
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
