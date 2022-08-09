@@ -58,6 +58,7 @@
         </div>
     </div>
 ```
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Frontend Design CSS
 
@@ -242,6 +243,8 @@
         </style>
 ````
 
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
+
 ## Frontend Design JavaScript
 ````javascript
 <script>
@@ -418,6 +421,8 @@
         });
     </script>
 ````
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
+
 ## Backend Handling with PHP
 
 ````php
@@ -571,6 +576,8 @@ if (isset($_GET["delete"])) {
     }
 }
 ````
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
+
 <!-- CONTACT -->
 
 ## Contact
@@ -581,4 +588,8 @@ LinkedIn Profile: [smhabibjr](https://www.linkedin.com/in/smhabibjr)
 
 Youtube Channel: [HabibJr](https://www.youtube.com/c/HabibJr)
 
-Youtube Channel: [HabibJr](https://www.facebook.com/smhabibjr)
+Facebook Profile: [Habib Jr](https://www.facebook.com/smhabibjr)
+
+Website : [habibjr.com](https://www.habibjr.com)
+
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
