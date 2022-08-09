@@ -5,15 +5,10 @@
 
 - [Project Description](#project-description)
 - [Technologies and Programing Languages](#technologies-and-programming-languages)
-- [Hello world](#hello_world)
 - Frontend Design
-  - [Modal Dialog from php](#modal_dialog_from_php)
-  - [Hello world](#hello_world)
-  - [Frontend Design with HAML and Bootstrap](#frontend_design_with_haml_and_bootstrap)
-  
-  - [Frontend Design HTML](#frontend-design-html)
-  - [Frontend Design CSS](#frontend-design-css)
-  - [Frontend Design JavaScript](#frontend-design-javascript)
+  - [Modal Dialog from php](#modal-dialog-from-php)
+  - [Frontend Design with HAML and Bootstrap](#frontend-design-with-haml-and-bootstrap)
+  - [Form validation using JavaScript](#form-validation-using-javascript)
 - Backend
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
@@ -23,7 +18,7 @@
 
 ## Technologies and Programming Languages
 
-Frontend: [HAML](https://haml.info/), [Bootstrap](https://getbootstrap.com/)
+Frontend: [HAML](https://haml.info/), [Bootstrap](https://getbootstrap.com/), [JavaScript](https://www.javascript.com/)
 
 Backend: [Ruby](https://www.ruby-lang.org/de/), [PHP](https://www.php.net)
 
@@ -31,8 +26,6 @@ Framework: [Ruby on Rails](https://rubyonrails.org/)
 
 
 ## Modal Dialog from php
-
-## Hello World
 
 Initialize modal box size : index.php
 
@@ -90,7 +83,7 @@ $modal = new modalDialog(
 );
 $modal->create("html");
 ```
-
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Frontend Design with HAML and Bootstrap
 
@@ -176,6 +169,317 @@ $modal->create("html");
   = hidden_field_tag "dialogannahmen_internal_frontend_id[]", 0, class:"dialogannahmen_internal_frontend_id"
   = hidden_field_tag "dialogannahmen_db_id[]", 0, class:"internal_db_id"
 ````
+
+## Form validation using JavaScript
+
+````javascript
+$('.dialog_management.index').ready(function () {
+    // add new class when the data will be changed
+    function addclass_when_data_changed(){
+        // on changed on input field.
+        $(".input-field").on('change',function () {
+            // go to their parents row and add 'changed-row' to identify row has been changed.
+            var main_element = $(this).closest(".dialogannahmen-rows").addClass("changed-row");
+        });
+    }
+
+    // date and time validation function
+    function date_time_validation(selector) {
+        // go to the main row
+        var main_element = selector.closest(".dialogannahmen-rows");
+        // grab the start date and convert into in german format.
+        var start_date = convert_german_date_to_iso(main_element.find(".date_from").val());
+        // grab the end date and convert into in german format.
+        var end_date = convert_german_date_to_iso(main_element.find(".date_to").val());
+        // grab the start time.
+        var start_time = main_element.find(".start_timepicker").val();
+        // grab the end time.
+        var end_time = main_element.find(".end_timepicker").val();
+        // create a date and time parse.
+        var start_date_time = start_date + "T" + start_time + ":00";
+        var end_date_time = end_date + "T" + end_time + ":00";
+        // check end dateTime bigger than start dateTime or not.
+        if (start_date_time > end_date_time) {
+            // if start dateTime bigger then end dateTime , show notification.
+            send_to_parent(error_notice("Von Datum und Zeit dürfen nicht nach Bis Datum und Zeit liegen"));
+            // and also submit button will be disabled
+            $(':input[type="submit"]').prop('disabled', true);
+            // returns function value is equels 1
+            return 1;
+        } else {
+            // otherwise submit button will be enable to click.
+            $(':input[type="submit"]').prop('disabled', false);
+            // returns value will the 0
+            return 0;
+        }
+    }
+
+    // blind start date picker.
+    function bind_date_from_picker() {
+        // select the date-input-fields
+        var selector = $('.date_from');
+        // initialize the date picker to the selector.
+        selector.datepicker({
+            beforeShow: function () {
+                // grab the current date and time
+                var limit_min_date = new Date();
+                // grab only date and set it into 'limit_min_date'
+                limit_min_date.setDate(limit_min_date.getDate());
+                // set min date
+                $(this).datepicker('option', 'minDate', limit_min_date);
+            },
+            onClose: function () {
+                // on close run the date_time_vallidation function to validate date and time.
+                var status = date_time_validation($(this));
+                // if validation is oky then remove the red border form input fields.
+                if (status === 0) {
+                    $(this).removeClass("border border-danger");
+                    $(this).closest(".dialogannahmen-rows").find(".date_to").removeClass("border border-danger");
+                }
+            }
+        });
+    }
+
+    // blind end date picker.
+    function bind_date_to_picker() {
+        // select the date-input-fields
+        var selector = $('.date_to');
+        // initialize the date picker to the selector.
+        selector.datepicker({
+            showOn: 'both',
+            // before show the date calender
+            beforeShow: function () {
+                // go to parent row and grab start date.
+                var parent_row = $(this).closest('.dialogannahmen-rows');
+                var start_date = parent_row.find('.date_from');
+                var limit_min_date = new Date($(start_date).datepicker('getDate'));
+                // before start date all date will be disabled
+                $(this).datepicker('option', 'minDate', limit_min_date);
+            },
+            onClose: function () {
+                // on close check the date and time.
+                var status = date_time_validation($(this));
+                // if date and time oky then remove red border from them.
+                if (status === 0) {
+                    $(this).removeClass("border border-danger");
+                    $(this).closest(".dialogannahmen-rows").find(".date_from").removeClass("border border-danger");
+                }
+            }
+        });
+    }
+
+    // blind start time picker.
+    function bind_start_timepicker() {
+        // select the date-input-fields
+        var selector = $('.start_timepicker');
+        // initialize the time picker to the selector.
+        selector.timepicker({
+            rows: 2,
+            showPeriodLabels: false,
+            minuteText: 'Minute',
+            hourText: 'Stunde',
+            closeText: 'Fertig',
+            closeButtonText: 'Schließen',
+            showCloseButton: true,
+            minutes: {
+                starts: 0,
+                interval: 5
+            },
+            //stunden anzeige
+            hours: {
+                starts: 5,
+                ends: 22
+            },
+            onClose: function () {
+                // on close run the date_time_validation function to check date and time.
+                var status = date_time_validation($(this));
+                // if time oky then remove the red border from them.
+                if (status === 0) {
+                    $(this).removeClass("border border-danger");
+                    $(this).closest(".dialogannahmen-rows").find(".end_timepicker").removeClass("border border-danger");
+                }
+            },
+        });
+    }
+    // blind end time picker.
+    function bind_end_timepicker() {
+        // select the date-input-fields
+        var selector = $('.end_timepicker');
+        // initialize the time picker to the selector.
+        selector.timepicker({
+            rows: 2,
+            showPeriodLabels: false,
+            minuteText: 'Minute',
+            hourText: 'Stunde',
+            closeText: 'Fertig',
+            closeButtonText: 'Schließen',
+            showCloseButton: true,
+            minutes: {
+                starts: 0,
+                interval: 5
+            },
+            //stunden anzeige
+            hours: {
+                starts: 5,
+                ends: 22
+            },
+            onClose: function () {
+                // on close run the date_time_validation function to check date and time.
+                var status = date_time_validation($(this));
+                if (status === 0) {
+                    // if time oky then remove the red border from them.
+                    $(this).removeClass("border border-danger");
+                    $(this).closest(".dialogannahmen-rows").find(".start_timepicker").removeClass("border border-danger");
+                }
+            }
+        });
+    }
+
+    // blind date function
+    function bind_delete_dialogannahme() {
+        // select the delete button
+        var delete_selector = $(".delBtn");
+        // after click the delete button
+        delete_selector.click(function (e) {
+            // go to the main row
+            var main_element = $(this).closest(".dialogannahmen-rows");
+            // and grab the db_id of it.
+            var deleted_db_id = main_element.find(".dialogannahmen_db_id").val();
+            // if db_id exist then send an ajax request to delete that row
+            if (parseInt(deleted_db_id) > 0) {
+                // then open the confirm box.
+                open_confirm_box($('.confirm_delete_dialogannahme'));
+                // if confirmed
+                $(".button_true_confirm_delete_dialogannahme").off().click(function () {
+                    // then send an ajax request to the controller.
+                    $.ajax({
+                        url: "/dialog_management/" + deleted_db_id,
+                        type: "DELETE",
+                        success: function () {
+                            // after success the delete request
+                            // remove the whole row
+                            main_element.remove();
+                            // also send a delete notice to the browser.
+                            send_to_parent(delete_notice());
+                            // and close the confirm box
+                            $.modal.close();
+                        },
+                        error: function () {
+                            send_to_parent(error_notice());
+                        }
+                    });
+                });
+            } else {
+                // otherwise only remove the whole element.
+                main_element.remove();
+            }
+        });
+    }
+    // submit function
+    $("#dialog_management_acceptence").submit(function (e) {
+        e.preventDefault();
+        // disabled the all row except (changed-row) where changes have been made.
+        $('.dialogannahmen-rows').not(".changed-row").find('input').prop('disabled', true);
+        // serialize the form and save all data inside 'form_data'
+        let form_data = $(this).serialize();
+        // send a post request using ajax
+        $.ajax({
+            url: "/dialog_management",
+            data: form_data,
+            type: "POST",
+            success: function (data) {
+                // after success the post request enable the all input fields.
+                $('.dialogannahmen-rows').find('input').prop('disabled', false);
+                $('.dialogannahmen-rows').removeClass('changed-row');
+                // send success notification to the browsers.
+                send_to_parent(success_notice());
+                // check the json data exist or not.
+                if (data.length > 0) {
+                    // if exist then loop the data array through every single element and change the db_id
+                    for (var i = 0; i < data.length; i++) {
+                        $("input[name='dialogannahmen_internal_frontend_id[]'][value='" + data[i].internal_id + "']").parent().find("input[name='dialogannahmen_db_id[]']").val(data[i].db_id)
+                    }
+                }
+            },
+            error: function (data) {
+                // if error occuerd then grab that error
+                var error_response = JSON.parse(data.responseText);
+                if (error_response.length > 0) {
+                    // loop the error_response array through every sinle element
+                    for (var i = 0; i < error_response.length; i++) {
+                        // grab internal_id
+                        var _response_internal_id = error_response[i].internal_id;
+                        // and also grab the error mag where error_occured exactly.
+                        var _response_error_msh = error_response[i].error_msh;
+                        // go to the main row according to internal_id
+                        var _main_element = $("input[name='dialogannahmen_internal_frontend_id[]'][value='" + _response_internal_id + "']").closest(".dialogannahmen-rows");
+                        // check the error msg
+                        if (_response_error_msh === "Uhrzeit von liegt nach Uhrzeit bis") {
+                            // if error mag reletade to time then add red border for time-input-fields
+                            _main_element.find(".start_timepicker").addClass("border border-danger");
+                            _main_element.find(".end_timepicker").addClass("border border-danger");
+                        } else if (_response_error_msh === "Datum von liegt nach Datum bis") {
+                            // if error mag reletade to date then add red border for date-input-fields
+                            _main_element.find(".date_from").addClass("border border-danger");
+                            _main_element.find(".date_to").addClass("border border-danger");
+                        }
+                    }
+                }
+                // also send error notice to the browser.
+                send_to_parent(error_notice());
+            }
+        });
+    });
+
+    // add perfect scrollbar for content div
+    const container = document.querySelector('.dialog-container');
+    const ps = new PerfectScrollbar(container);
+    // initialize lc switch for checkbox and alternative text
+    $("#dialogannahmenAktivierenCheckbox").lc_switch('Ja', 'Nein');
+    // create a dynamic id for new row. without unique id date and time picker doesnt pick date and time
+    var last_row = $("#dialog-container").children(".dialogannahmen-rows").last();
+    var last_row_value = parseInt(last_row.find(".dialogannahmen_internal_frontend_id").val());
+    var increment_last_row_value = 0;
+    if (last_row.length > 0) {
+        increment_last_row_value = last_row_value + 1
+    } else {
+        increment_last_row_value = 1
+    }
+    // clone a new row when add button clicked
+    $("#btn_add").click(function () {
+        var newField = $(".dialogannahmen-new-row-template").clone().removeClass("dialogannahmen-new-row-template d-none").addClass("dialogannahmen-rows");
+        newField.find(".dialogannahmen_internal_frontend_id").val(increment_last_row_value);
+        newField.find(".date-from-field").attr("id", "date_from_field_" + increment_last_row_value).addClass("date_from");
+        newField.find(".date-to-field").attr("id", "date_to_field_" + increment_last_row_value).addClass("date_to");
+        newField.find(".time-from-field").attr("id", "time-from-field_" + increment_last_row_value).addClass("start_timepicker");
+        newField.find(".time-to-field").attr("id", "time-to-field_" + increment_last_row_value).addClass("end_timepicker");
+        newField.find(".internal_db_id").addClass("dialogannahmen_db_id");
+        $("#dialog-container").append(newField);
+        increment_last_row_value += 1;
+        // scroll ganz bottom when new row added
+        scroll_to_bottom_of('#dialog-container');
+        addclass_when_data_changed();
+        //runn date picker
+        bind_date_from_picker();
+        bind_date_to_picker();
+        // run time picker
+        bind_start_timepicker();
+        bind_end_timepicker();
+        // run delete function
+        bind_delete_dialogannahme();
+    });
+    addclass_when_data_changed();
+    //runn date picker
+    bind_date_from_picker();
+    bind_date_to_picker();
+    // run time picker
+    bind_start_timepicker();
+    bind_end_timepicker();
+    // run delete function
+    bind_delete_dialogannahme();
+});
+````
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Backend Handling with Ruby
 
@@ -334,6 +638,7 @@ end
 
 ````
 
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 
 ## Contact
@@ -344,4 +649,6 @@ LinkedIn Profile: [smhabibjr](https://www.linkedin.com/in/smhabibjr)
 
 Youtube Channel: [HabibJr](https://www.youtube.com/c/HabibJr)
 
-Youtube Channel: [HabibJr](https://www.facebook.com/smhabibjr)
+Facebook Profile: [HabibJr](https://www.facebook.com/smhabibjr)
+
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
