@@ -30,56 +30,83 @@ Framework: [Ruby on Rails](https://rubyonrails.org/)
 Initialize modal box size : index.php
 
 ````php
-    //2022-03-11 Verwaltung von Dialoggannahmen in Tagesansicht
-    echo "<font class=\"content\"><b>Dialogannahmenverwaltung</b>";
+       echo "<font class=\"content\"><b>Feiertagsverwaltung rails</b>";
     $modal = new modalDialog();
     $pref_mod = array(
-        "height" => "660px",
-        "width" => "1000px",
+        "height" => "700px",
+        "width" => "1100px",
         "reload" => false,
         "close-question" => true
     );
-    echo $modal->create("link_js", "[bearbeiten]", "modules/Werkstatt/dialogannahme/dialog_acceptance_management.php", $pref_mod);
+    echo $modal->create("link_js", "[bearbeiten]", "modules/Werkstatt/feiertage/feiertage_rails.php", $pref_mod);
     echo " </font><br>";
 ````
 
 
-/dialog_acceptance_management.php
+/feiertage/feiertage_rails.php
 
 ```php
-`<?php
+<?php
 /**
  * Created by PhpStorm.
  * User: Habib
- * Date: 11.03.2022
- * Time: 12:42
+ * Date: 25.10.2021
+ * Time: 15:19
  */
 
 chdir(dirname(__FILE__) . "/../../../");
-include_once("mainfile.php");
+include_once ("mainfile.php");
 require_once "modules/Werkstatt/wterm15/modalDialog_class.php";
 
-// collect all info about hdl using get_hdl_array function and store it inside hdl_array
-$hdl_array = get_hdl_array();
+
+
+$uid = get_uid();
+
+// Festlegung der Variablen innerhalb der einzelnen Seiten
+// Überprüfe welche Rechte der Benutzer hat und zeige je nachdem die freigegebenen Tabs an
+$sql = "SELECT * FROM can_hdlid" .
+    " LEFT OUTER JOIN can_extended_rights " .
+    "ON can_hdlid.hdl_firma=can_extended_rights.firma " .
+    "AND can_hdlid.hdl_filiale=can_extended_rights.filiale " .
+    "WHERE ((can_extended_rights.category='Administrator' AND can_extended_rights.name='Administrator(filialübergreifend)') ".
+    "OR (can_extended_rights.category='Administrator' AND can_extended_rights.name='Hauptbenutzer')) AND can_extended_rights.on_off > 0 ".
+    "AND can_extended_rights.user_id=$uid AND hdl_passiv=0 ORDER BY can_hdlid.hdl_id";
+$res=mysql_query($sql,$dbi);
+
+if (mysql_num_rows($res) > 0) {
+    while ($row = mysql_fetch_array($res)) {
+        $hdlid_array[] = array(
+            "hdl" => "$row[hdl_konto]",
+            "id" => "$row[hdl_id]",
+            "firma" => "$row[hdl_firma]",
+            "filiale" => "$row[hdl_filiale]",
+            "name" => $row['hdl_name'],
+            "name2" => $row['hdl_name2'],
+            "ort" => $row['hdl_ort'],
+            "straße" => $row['hdl_str']
+        );
+    }
+}
 
 $urls = array();
-foreach ($hdl_array as $hdl) {
-    // send a http requst to the odbcrunner wiht hdl_id
-    $urls["$hdl[ort]<span style='display:none'>$hdl[firma]$hdl[filiale]</span></br>$hdl[straße]"] = "http://". $_SERVER["HTTP_HOST"].":5050/dialog_management/$hdl[id]";
-    $hdl_array = get_hdl_array();
+foreach ($hdlid_array as $hdl) {
+    $urls["$hdl[ort]<span style='display:none'>$hdl[firma]$hdl[filiale]</span></br>$hdl[straße]"] = "http://" . $_SERVER["HTTP_HOST"] . ":5050/holidays/$hdl[id]";
+
 }
-// initialize a content height in model
+
 $prefs = array(
+    "title" => NULL,
+    "body_height" => "600px",
     "tab_content_height" => 500,
-    "close-question" => true
+
 );
-// initialize a new model with model title and icon
+
 $modal = new modalDialog(
-    "Verwaltung Dialogannahmen",
-    "/eins/html/images/1-wtp_icons_ci/1-wtp-mit-Pyramide.png",
+    "Feiertagsverwaltung",
+    "/eins/html/images/1-wtp_icons_ci/Pikto-acs-07.png",
     NULL,
     $urls,
-    NULL,
+    null,
     $prefs
 );
 $modal->create("html");
@@ -89,86 +116,62 @@ $modal->create("html");
 ## Frontend Design with HAML and Bootstrap
 
 ````haml
-`.container-fluid
-  %form#dialog_management_acceptence
-    .container-fluid
-      = hidden_field_tag :firma, @dialog_management_data[:firma], class:"hdl_firma"
-      = hidden_field_tag :filiale, @dialog_management_data[:filiale], class:"hdl_filiale"
-      = hidden_field_tag :branch_id, @dialog_management_data[:branch_id], class:"branch_id"
-      .row.ml-1
-        .col-6
-          .row.p-1
-            Verwaltung von Dialogannahmen aktivieren
-          .row.p-1.d-flex.align-items-center
-            Anzahl an verfügbaren Dialogannahmen je Zeitslot
-        .col-6
-          .row.p-1
-            = check_box_tag  "dialogannahmen_active_status", '' , @dialog_management_data[:dialogannagmen_status].wie_onoff == 1 ? true : false , {:id => "dialogannahmenAktivierenCheckbox"}
-          .row.w-25
-            = text_field_tag "dialog_time_slot", @dialog_management_data[:dialogannagmen_status].wie_todo, {:class => "form-control dialogannahmenAktivierenTimeSlot",:autocomplete=>"off"}
-
-      .row
-        .col.d-flex.align-items-center.ml-2
-          Datum(Von)
-        .col.d-flex.align-items-center
-          Uhrzeit(Von)
-        .col.d-flex.align-items-center
-          Datum(bis)
-        .col.d-flex.align-items-center
-          Uhrzeit(bis)
-        .col
-          Abzug von verfügbaren Dialogannahmen
-        .col.d-flex.justify-content-center.align-items-center
-          Löschen
-
-    .container-fluid.mb-2.dialog-container#dialog-container{:style => "height:265px; position:relative"}
-      - internal_frontend_id = 1
-      - @dialog_management_data[:dialogueacceptances].each do |single_dialogacceptance|
-        .row.p-1.dialogannahmen-rows
-          .col
-            = text_field_tag "date_from[]", single_dialogacceptance.date_from.strftime("%d.%m.%Y"), :class => "form-control input-field date-from-field date_from",:id => "date_from_field_#{internal_frontend_id}", :pattern=>"(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}", :readonly => "readonly",:required => true , :autocomplete=>"off"
-          .col
-            = text_field_tag "time_from[]", single_dialogacceptance.time_from.strftime("%H:%M"), :class => "form-control input-field time-from-field start_timepicker", :id => "time_from_field_#{internal_frontend_id}",:required => true ,:readonly => "readonly"
-          .col
-            = text_field_tag "date_to[]", single_dialogacceptance.date_to.strftime("%d.%m.%Y"), :class => "form-control input-field date-to-field date_to", :id => "date_to_field_#{internal_frontend_id}",:pattern=>"(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}", :readonly => "readonly", :required => true,:autocomplete=>"off"
-          .col
-            = text_field_tag "time_to[]", single_dialogacceptance.time_to.strftime("%H:%M"), :class => "form-control input-field time-to-field end_timepicker", :id => "time_to_field_#{internal_frontend_id}",:required => true ,:readonly => "readonly"
-          .col
-            = text_field_tag "minus[]", single_dialogacceptance.minus, :class => "form-control input-field dialogannahmen_minus", :id => "minus_#{internal_frontend_id}",:required => true, :autocomplete=>"off"
-          .col.d-flex.justify-content-center
-            .btn.btn-danger.delBtn.border-0.rounded-0{:id => "delBtn_#{internal_frontend_id}", :style => "background:rgb(255, 156, 56);"}
-              %i.fa.fa-trash
-          = hidden_field_tag "dialogannahmen_internal_frontend_id[]", internal_frontend_id, class:"dialogannahmen_internal_frontend_id internal_id_#{internal_frontend_id}"
-          = hidden_field_tag "dialogannahmen_db_id[]", single_dialogacceptance.id, class:"dialogannahmen_db_id"
-          - internal_frontend_id += 1
-
-    .row.d-flex.justify-content-center.mb-1
-      .col.d-flex.justify-content-center
-        .btn.btn-primary.border-0.rounded-0#btn_add{:style => "background:rgb(255, 156, 56);"}
-          %i.fa.fa-plus
-    .row
-      .col.d-flex.justify-content-center
-        = button_tag :Speichern,:id => "submit_dailogannahe", :class => "btn btn-primary border-0 rounded-0", type: :submit, :style => "background:rgb(255, 156, 56); font-weight: bold; outline:0px !important; box-shadow: none !important;"
-
-=render :partial => 'shared/confirm', locals: {name: "confirm_delete_dialogannahme", title: "Soll diese Dialogannahme wirklich gelöscht werden?", width: "400px;", height: "120px" }
+.containers
+  .main-container
+    .title-section.d-flex.h-5.w-100.mb-2.mt-2
+      .column1.w-25.mr-2
+        Bundesland:
+        = select_tag 'state',  options_for_select([ ['Bitte auswählen', 'none'], ['Baden-Württemberg', 'BW'] , ['Bayern', 'BY'] ,['Berlin', 'BE'],['Brandenburg',
+        'BB'],['Bremen', 'HB'],['Hamburg', 'HH'],['Hessen', 'HE'],['Mecklenburg-Vorpommern', 'MV'],['Niedersachsen', 'NI'],['Nordrhein-Westfalen', 'NW'],['Rheinland-Pfalz', 'RP'],
+        ['Saarland', 'SL'],['Sachsen', 'SN'],['Sachsen-Anhalt', 'ST'],['Schleswig-Holstein', 'SH'], ['Thüringen', 'TH']], selected: @which_state), class: 'stateSelector'
+      .column3.w-25.d-flex{:style => "margin-left:665px"}
+        %p3 Termine planbar?
+    .contain-section.d-flex.w-100#div_holiday_head_els
+      %form.contain-col1#div_holiday_head
+        - holiday_front_end_id = 1
+        - unique_id = 0
+        - @holidays.each do |single_day|
+          - planable = single_day.planable
+          .div.holiday_rows.d-flex.w-100{class: (single_day.fest === 1 ? 'fixed_holidays' : 'customized_holidays' ) }
+            -#= hidden_field_tag "fixed_holidays[]", single_day.fest, :class => "fixed_holidays_#{single_day.fest == 1}"
+            = hidden_field_tag "holiday_db_id[]", single_day.id , :class => "holiday_db_id"
+            = hidden_field_tag "holiday_front_end_id[]", holiday_front_end_id , :class => "holiday_front_end_id"
+            = text_field_tag "holiday_date[]",  single_day.datum.strftime("%d.%m.%Y"), :class => "mr-5 mb-1 dateField", :style => "width: 222px;",disabled: single_day.fest == 0 ? false : true, :id=> unique_id
+            = text_field_tag "holiday_name[]",  single_day.bezeichnung, :class => "mr-5 mb-1 nameField",:style => "width:600px",disabled: single_day.fest == 0 ? false : true , :id => unique_id
+            = check_box_tag 'holiday_planable[]', planable, planable, {:class => "holidayCheckbox"}
+            .div.ml-4{:style => "display: #{single_day.fest == 0 ? 'show': 'none' } "}
+              .btn.btn-danger.d-flex.justify-content-center.align-items-center.delBtn{:role=>"button", :style=> "height:30px; width:30px;"}
+                %i.fa.fa-trash
 
 
-.row.p-1.dialogannahmen-new-row-template.d-none
-  .col
-    = text_field_tag "date_from[]", '', :class => "form-control input-field date-from-field",:pattern=>"(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}", :readonly => "readonly",:required => true, :autocomplete=>"off"
-  .col
-    = text_field_tag "time_from[]", '', :class => "form-control input-field time-from-field",:required => true ,:readonly => "readonly"
-  .col
-    = text_field_tag "date_to[]", '', :class => "form-control input-field date-to-field",:pattern=>"(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}", :readonly => "readonly",:required => true, :autocomplete=>"off"
-  .col
-    = text_field_tag "time_to[]",'', :class => "form-control input-field time-to-field",:required => true, :readonly => "readonly"
-  .col
-    = text_field_tag "minus[]", '', :class => "form-control input-field dialogannahmen_minus",:required => true, :autocomplete=>"off"
-  .col.d-flex.justify-content-center
-    .btn.btn-danger.delBtn.border-0.rounded-0{:style => "background:rgb(255, 156, 56);"}
+
+            - holiday_front_end_id += 1
+            - unique_id += 1
+        = hidden_field_tag :holiday_front_end_id_global, holiday_front_end_id
+        = hidden_field_tag :firma, @branch.hdl_firma, class:"hdl_firma"
+        = hidden_field_tag :filiale, @branch.hdl_filiale, class:"hdl_filiale"
+    .add-btn-section.d-flex.justify-content-center.h-5.w-100.mt-1
+      .div.btn-add-new-row.d-inline.border.text-decoration-none.text-light.border-0.text-align-cente#btnAdd
+        %span.fa.fa-plus-circle
+    .save-btn-section.d-flex.justify-content-center.h-5.w-100.mt-1
+      .button-1-wtp.button-padding-1-wtp#btnSubmit{:style => "cursor: pointer; font-weight: bold;"} Speichern
+
+
+
+
+.div_holiday_row_template.d-none
+  .new_row.d-flex.w-100
+    -#= hidden_field_tag "fixed_holidays[]", 1, class: "fixed_holidays"
+    = hidden_field_tag "holiday_db_id[]", 0, class: "holiday_db_id"
+    = hidden_field_tag "holiday_front_end_id[]", 0, class: "holiday_front_end_id"
+    = text_field_tag 'holiday_date[]',  '', :class => "mr-5 mb-1 newDateField", :style => "width: 222px;"
+
+    = text_field_tag 'holiday_name[]', '', :class => "mr-5 mb-1 newNameField", :style => "width:600px"
+
+    = check_box_tag 'holiday_planable[]', '', false, {:class => "holidayCheckboxTemplate", :type=>"checkbox"}
+
+    .btn.btn-danger.ml-4.d-flex.justify-content-center.align-items-center.delBtn{:role=>"button", :style=> "height:30px; width:30px;"}
       %i.fa.fa-trash
-  = hidden_field_tag "dialogannahmen_internal_frontend_id[]", 0, class:"dialogannahmen_internal_frontend_id"
-  = hidden_field_tag "dialogannahmen_db_id[]", 0, class:"internal_db_id"
 ````
 
 <sup align="right"><a href="#table-of-contents">Go to top</a></sup>
@@ -176,310 +179,383 @@ $modal->create("html");
 ## Form validation using JavaScript
 
 ````javascript
-$('.dialog_management.index').ready(function () {
-    // add new class when the data will be changed
-    function addclass_when_data_changed(){
-        // on changed on input field.
-        $(".input-field").on('change',function () {
-            // go to their parents row and add 'changed-row' to identify row has been changed.
-            var main_element = $(this).closest(".dialogannahmen-rows").addClass("changed-row");
+
+$(".holidays.index").ready(function () {
+    //when pages loaded then move customized holiday after the fixed holidays
+    $(".customized_holidays").insertAfter($("#div_holiday_head > div.fixed_holidays").last()).next();
+
+    //an empty array to change planable status for state holiday
+    var state_holiday_planable = [];
+    //initibalize an empty array to save holidays when state changed
+    var state_changed_records = [] ;
+    //initialize an empty array to create new holiday
+    var changed_records = [];
+    //initialize an empty array to update customized holiday
+    var created_records = [];
+    //select hdl firma
+    var hdl_firma = $(".hdl_firma").val();
+    //select hdl filiale
+    var hdl_filiale = $(".hdl_filiale").val();
+    // Date picker function to pick date for date Field
+    function runDatePicker() {
+        $('.dateField').datepicker({
+            // pick the date on select
+            onSelect: function () {
+                //go to the parent element when checkbox is checked
+                var header_element = $(this).closest('.holiday_rows');
+                //run the function to create or update records
+                created_changed_records(header_element);
+            }
         });
     }
+    //run the date picker function
+    runDatePicker();
+    // change the text in LC Switch
+    function change_checkbox_text(){
+        $('.holidayCheckbox').off().lc_switch('Ja', 'Nein');
+    }
+    //run the lc switch checkbox text changer
+    change_checkbox_text();
 
-    // date and time validation function
-    function date_time_validation(selector) {
-        // go to the main row
-        var main_element = selector.closest(".dialogannahmen-rows");
-        // grab the start date and convert into in german format.
-        var start_date = convert_german_date_to_iso(main_element.find(".date_from").val());
-        // grab the end date and convert into in german format.
-        var end_date = convert_german_date_to_iso(main_element.find(".date_to").val());
-        // grab the start time.
-        var start_time = main_element.find(".start_timepicker").val();
-        // grab the end time.
-        var end_time = main_element.find(".end_timepicker").val();
-        // create a date and time parse.
-        var start_date_time = start_date + "T" + start_time + ":00";
-        var end_date_time = end_date + "T" + end_time + ":00";
-        // check end dateTime bigger than start dateTime or not.
-        if (start_date_time > end_date_time) {
-            // if start dateTime bigger then end dateTime , show notification.
-            send_to_parent(error_notice("Von Datum und Zeit dürfen nicht nach Bis Datum und Zeit liegen"));
-            // and also submit button will be disabled
-            $(':input[type="submit"]').prop('disabled', true);
-            // returns function value is equels 1
-            return 1;
+
+    //checkbox trigger function
+    function chaeckboxTriggerFunction() {
+        $('body').delegate('.holidayCheckbox', 'lcs-statuschange', function () {
+            //go to the parent element when checkbox is triggered
+            var header_element = $(this).closest('.holiday_rows');
+
+            //run the function to create or update records as an array
+            created_changed_records(header_element);
+        });
+    }
+    //run the checkbox trigger function
+    chaeckboxTriggerFunction();
+
+    //Declare a variable to crate a dynamic frontend id for new row
+    var holiday_front_end_id_global = 0;
+    //change the holidays according to state
+    $(".stateSelector").change(function () {
+        //collect the state value
+        var state_value = $(".stateSelector").val();
+        //Declare new form to send an ajax request to filler holiday
+        var form_data = new FormData();
+        form_data.append('state', JSON.stringify(state_value));
+        $.ajax({
+            // send to the get_holiday controller
+            url: "get_holidays",
+            //request type
+            type: "POST",
+            //form data
+            data: form_data,
+            //This request expecting a response from server side
+            async: false,
+            //contentType option to false is used for multipart/form-data forms that pass files
+            contentType: false,
+            //processData is false jQuery simply sends whatever I specify as data in an Ajax request without any attempt to modify it by encoding as a query string.
+            processData: false,
+            //response handling
+            success: function (data) {
+                created_records = [];
+                changed_records = [];
+                var response_holiday = data;
+                //if received a feedback from server sice (controller)
+                if (response_holiday.length > 0) {
+                    //sort those row according to date
+                    var _data = response_holiday.sort((a, b) => (a.date > b.date) ? 1 : -1);
+                    //remove all fixed holidays
+                    $(".fixed_holidays").remove();
+                    //remove also the old state holiday to show new state holidays
+                    $(".holiday_rows").find($(".new_row")).remove();
+                    //Loop the all responded data and replace inside the holiday day element
+                    for (var i = 0; i < _data.length; i++) {
+                        //clone new row and exchange their class name
+                        var new_record = $('.div_holiday_row_template').clone(true).removeClass('div_holiday_row_template').addClass('holiday_rows');
+                        new_record.find('.holidayCheckboxTemplate').removeClass('holidayCheckboxTemplate').addClass('holidayCheckbox');
+                        new_record.find('.newDateField').removeClass('newDateField').addClass('dateField');
+                        new_record.find('.newNameField').removeClass('newNameField').addClass('nameField');
+                        //collect the holiday name from the responded data
+                        var name = _data[i].name;
+                        //collect the holiday date from the responded data
+                        var _date = _data[i].date;
+                        //change the Date format
+                        var formatedDate = moment(_date).format('DD.MM.YYYY');
+                        //replace the name attribute for date field
+                        new_record.find(".dateField").attr('name', name);
+                        //replace the value for date field and active as a disabled element
+                        new_record.find(".dateField").val(formatedDate).prop('disabled', true);
+                        //replace the name attribute for name field
+                        new_record.find(".nameField").val(name);
+                        //replace the value for name field and active as a disabled element
+                        new_record.find(".nameField").attr('name', name).prop('disabled', true);
+                        //as a fixed holiday we dont need to the delete button
+                        new_record.find(".delBtn").remove();
+                        //show to new added row
+                        new_record.removeClass('d-none');
+                        //append the new added row inside the parent element
+                        $("#div_holiday_head").append((new_record));
+
+                        //run the lc switch text change function
+                        change_checkbox_text();
+
+
+                        // created_changed_records(new_record);
+                        state_changed_records.push({
+                            internal_id: i,
+                            holiday_date: _date,
+                            holiday_name: name,
+                        });
+                        //scroll to bottom when added a new row
+                        scroll_to_bottom_of('#div_holiday_head_els');
+                    }
+                    //sort customized_holidays
+                    $(".customized_holidays").insertAfter($(".holiday_rows > div.new_row").last()).next();
+                }
+            },
+            //error handling
+            error: function () {
+            }
+
+        });
+    });
+
+    holiday_front_end_id_global = $('#holiday_front_end_id_global').val();
+
+    //add new row when click the add button
+    $("#btnAdd").click(function () {
+        //clone the new row template
+        var newField = $(".div_holiday_row_template").clone().removeClass("div_holiday_row_template").addClass("holiday_rows");
+        newField.find('.newDateField').removeClass('newDateField').addClass('dateField');
+        newField.find('.newNameField').removeClass('newNameField').addClass('nameField');
+        newField.find(".holidayCheckboxTemplate").removeClass("holidayCheckboxTemplate").addClass("holidayCheckbox");
+        //set a dynamic id for every new added rows (without new id , datepicker doesnt work)
+        newField.find('.dateField').attr("id", "newIdName" + holiday_front_end_id_global);
+        newField.removeClass('d-none');
+        newField.find('.holiday_front_end_id').val(holiday_front_end_id_global);
+        //append the template inside the parent div
+        $("#div_holiday_head").append(newField);
+        //scroll to bottom when added a new row
+        scroll_to_bottom_of('#div_holiday_head_els');
+        //run the date picker
+        runDatePicker();
+        //run the lc switch text change function
+        change_checkbox_text();
+
+        keyup_trigger_function_for_nameField();
+
+        //run the delete tripper function to delete unsaved holiday
+        holidays_delete_button_trigger();
+
+        holiday_front_end_id_global = parseInt(holiday_front_end_id_global) + 1
+    });
+
+    function keyup_trigger_function_for_nameField() {
+        $(".nameField").keyup(function () {
+            //Select the parent element once typed someting in name input field
+            var header_element = $(this).closest(".holiday_rows");
+            //Run the delete function with passing header element as parameter
+            created_changed_records(header_element);
+        });
+    }
+    //run keyup trigger function when namefield triggered
+    keyup_trigger_function_for_nameField();
+
+    //delete button trigger function
+    function holidays_delete_button_trigger() {
+        $(".delBtn").click(function () {
+            //Select the parent element once delete button
+            var head_element = $(this).closest('.holiday_rows');
+            //Run the delete function with passing header element as parameter
+            delete_holiday(head_element);
+        });
+    }
+    //run the delete tripper function to delete saved holiday
+    holidays_delete_button_trigger();
+
+    //delete function to delete holiday row and save the update value in the database
+    function delete_holiday(head_element){
+        //Select the db id
+        var db_id = head_element.find('.holiday_db_id').val();
+        //if db id exist then send a XMLHttpRequest to controller to delete that row
+        if (db_id !== "0") {
+            //declare a delete form
+            var deletedData = new FormData();
+            //and store into it db_id of that row
+            deletedData.append("db_id", db_id);
+            if (db_id !== "0"){
+                $.ajax({
+                    url: 'destroy',
+                    type: 'DELETE',
+                    data: deletedData,
+                    //This request expecting a response from server side
+                    async: false,
+                    //contentType option to false is used for multipart/form-data forms that pass files
+                    contentType: false,
+                    //processData is false jQuery simply sends whatever I specify as data in an Ajax request without any attempt to modify it by encoding as a query string.
+                    processData: false,
+                    //response handling
+                    success: function () {
+                        //if deleted successfully sent a notify to the browser
+                        send_to_parent(delete_notice());
+                    },
+                    //error handling
+                    error: function () {
+                        send_to_parent(error_notice());
+                    }
+                })
+            }
+            //Remove all element from that parent element
+            head_element.remove();
+        }else {
+            //Remove all element from that parent element
+            head_element.remove();
+        }
+    }
+    //function to create or update an object
+    function created_changed_records(header_element){
+        //select the db id of that row
+        var db_id = header_element.find(".holiday_db_id").val();
+        db_id = parseInt(db_id);
+        //select the internal id of that row
+        var internal_id = header_element.find(".holiday_front_end_id").val();
+        internal_id = parseInt(internal_id);
+        console.log("Checkbox triggered : internal id "+ internal_id + " db id " + db_id );
+        //select new holiday date
+        var newDate = header_element.find(".dateField").val();
+        //select holiday name
+        var name = header_element.find(".nameField").val();
+        //check checkbox status
+        var checkbox_element = header_element.find(".holidayCheckbox");
+        //declare initial value as a checkbox status
+        var _status = 0;
+        //if checked the checkbox then interchange the status
+        if (checkbox_element.is(":checked")) {
+            _status = 1;
         } else {
-            // otherwise submit button will be enable to click.
-            $(':input[type="submit"]').prop('disabled', false);
-            // returns value will the 0
-            return 0;
+            _status = 0;
+        }
+        //check the holiday is already exist in database or not
+        if (db_id === 0 && internal_id > 0) {
+            //check internal id exist or not
+            record_exists = created_records.find(element => element['internal_id'] === internal_id);
+            //if internal id exist then push all value inside created_record array
+            if (record_exists !== undefined) {
+                const index = created_records.findIndex(prop => prop['internal_id'] === internal_id);
+                created_records.splice(index, 1);
+                created_records.push({
+                    internal_id: internal_id,
+                    db_id: db_id,
+                    holiday_date: newDate,
+                    holiday_name: name,
+                    planable: _status
+                });
+
+            } else {
+                created_records.push({
+                    internal_id: internal_id,
+                    db_id: db_id,
+                    holiday_date: newDate,
+                    holiday_name: name,
+                    planable: _status
+                });
+            }
+            // if holiday dose not exist in database then create a new array to create a new holiday
+        }else if (internal_id > 0 && db_id > 0) {
+            //check internal id exist or not
+            record_exists = changed_records.find(element => element['db_id'] === db_id);
+            //if internal id exist then push all value inside created_record array
+            if (record_exists !== undefined){
+                const index = changed_records.findIndex(prop => prop['db_id'] === db_id);
+                changed_records.splice(index, 1);
+                changed_records.push({
+                    internal_id: internal_id,
+                    db_id: db_id,
+                    holiday_date: newDate,
+                    holiday_name: name,
+                    planable: _status
+
+                });
+            }else {
+                changed_records.push({
+                    internal_id: internal_id,
+                    db_id: db_id,
+                    holiday_date: newDate,
+                    holiday_name: name,
+                    planable: _status
+                });
+            }
+        } else {
+            state_holiday_planable.push({
+                planable_status: _status,
+                state_holiday_date: newDate,
+                state_holiday_name: name
+            });
+
+
         }
     }
 
-    // blind start date picker.
-    function bind_date_from_picker() {
-        // select the date-input-fields
-        var selector = $('.date_from');
-        // initialize the date picker to the selector.
-        selector.datepicker({
-            beforeShow: function () {
-                // grab the current date and time
-                var limit_min_date = new Date();
-                // grab only date and set it into 'limit_min_date'
-                limit_min_date.setDate(limit_min_date.getDate());
-                // set min date
-                $(this).datepicker('option', 'minDate', limit_min_date);
-            },
-            onClose: function () {
-                // on close run the date_time_vallidation function to validate date and time.
-                var status = date_time_validation($(this));
-                // if validation is oky then remove the red border form input fields.
-                if (status === 0) {
-                    $(this).removeClass("border border-danger");
-                    $(this).closest(".dialogannahmen-rows").find(".date_to").removeClass("border border-danger");
-                }
-            }
-        });
-    }
 
-    // blind end date picker.
-    function bind_date_to_picker() {
-        // select the date-input-fields
-        var selector = $('.date_to');
-        // initialize the date picker to the selector.
-        selector.datepicker({
-            showOn: 'both',
-            // before show the date calender
-            beforeShow: function () {
-                // go to parent row and grab start date.
-                var parent_row = $(this).closest('.dialogannahmen-rows');
-                var start_date = parent_row.find('.date_from');
-                var limit_min_date = new Date($(start_date).datepicker('getDate'));
-                // before start date all date will be disabled
-                $(this).datepicker('option', 'minDate', limit_min_date);
-            },
-            onClose: function () {
-                // on close check the date and time.
-                var status = date_time_validation($(this));
-                // if date and time oky then remove red border from them.
-                if (status === 0) {
-                    $(this).removeClass("border border-danger");
-                    $(this).closest(".dialogannahmen-rows").find(".date_from").removeClass("border border-danger");
-                }
-            }
-        });
-    }
 
-    // blind start time picker.
-    function bind_start_timepicker() {
-        // select the date-input-fields
-        var selector = $('.start_timepicker');
-        // initialize the time picker to the selector.
-        selector.timepicker({
-            rows: 2,
-            showPeriodLabels: false,
-            minuteText: 'Minute',
-            hourText: 'Stunde',
-            closeText: 'Fertig',
-            closeButtonText: 'Schließen',
-            showCloseButton: true,
-            minutes: {
-                starts: 0,
-                interval: 5
-            },
-            //stunden anzeige
-            hours: {
-                starts: 5,
-                ends: 22
-            },
-            onClose: function () {
-                // on close run the date_time_validation function to check date and time.
-                var status = date_time_validation($(this));
-                // if time oky then remove the red border from them.
-                if (status === 0) {
-                    $(this).removeClass("border border-danger");
-                    $(this).closest(".dialogannahmen-rows").find(".end_timepicker").removeClass("border border-danger");
-                }
-            },
-        });
-    }
-    // blind end time picker.
-    function bind_end_timepicker() {
-        // select the date-input-fields
-        var selector = $('.end_timepicker');
-        // initialize the time picker to the selector.
-        selector.timepicker({
-            rows: 2,
-            showPeriodLabels: false,
-            minuteText: 'Minute',
-            hourText: 'Stunde',
-            closeText: 'Fertig',
-            closeButtonText: 'Schließen',
-            showCloseButton: true,
-            minutes: {
-                starts: 0,
-                interval: 5
-            },
-            //stunden anzeige
-            hours: {
-                starts: 5,
-                ends: 22
-            },
-            onClose: function () {
-                // on close run the date_time_validation function to check date and time.
-                var status = date_time_validation($(this));
-                if (status === 0) {
-                    // if time oky then remove the red border from them.
-                    $(this).removeClass("border border-danger");
-                    $(this).closest(".dialogannahmen-rows").find(".start_timepicker").removeClass("border border-danger");
-                }
-            }
-        });
-    }
 
-    // blind date function
-    function bind_delete_dialogannahme() {
-        // select the delete button
-        var delete_selector = $(".delBtn");
-        // after click the delete button
-        delete_selector.click(function (e) {
-            // go to the main row
-            var main_element = $(this).closest(".dialogannahmen-rows");
-            // and grab the db_id of it.
-            var deleted_db_id = main_element.find(".dialogannahmen_db_id").val();
-            // if db_id exist then send an ajax request to delete that row
-            if (parseInt(deleted_db_id) > 0) {
-                // then open the confirm box.
-                open_confirm_box($('.confirm_delete_dialogannahme'));
-                // if confirmed
-                $(".button_true_confirm_delete_dialogannahme").off().click(function () {
-                    // then send an ajax request to the controller.
-                    $.ajax({
-                        url: "/dialog_management/" + deleted_db_id,
-                        type: "DELETE",
-                        success: function () {
-                            // after success the delete request
-                            // remove the whole row
-                            main_element.remove();
-                            // also send a delete notice to the browser.
-                            send_to_parent(delete_notice());
-                            // and close the confirm box
-                            $.modal.close();
-                        },
-                        error: function () {
-                            send_to_parent(error_notice());
-                        }
-                    });
-                });
-            } else {
-                // otherwise only remove the whole element.
-                main_element.remove();
-            }
-        });
-    }
-    // submit function
-    $("#dialog_management_acceptence").submit(function (e) {
-        e.preventDefault();
-        // disabled the all row except (changed-row) where changes have been made.
-        $('.dialogannahmen-rows').not(".changed-row").find('input').prop('disabled', true);
-        // serialize the form and save all data inside 'form_data'
-        let form_data = $(this).serialize();
-        // send a post request using ajax
+    $("#btnSubmit").click(function () {
+        //Declare a new array to save state value
+        var state_update = {
+            state_value : $(".stateSelector").val(),
+            hdl_firma   : $(".hdl_firma").val(),
+            hdl_filiale : $(".hdl_filiale").val()
+        };
+        //Declare a new formData and append into it all array
+        var newDataForm = new FormData();
+        //appends a new value onto an existing key inside a FormData object
+        //JSON.stringify() method converts a JavaScript object or value to a JSON string
+        newDataForm.append("state_updated",             JSON.stringify(state_update));
+        newDataForm.append('created_records',           JSON.stringify(created_records));
+        newDataForm.append('changed_records',           JSON.stringify(changed_records));
+        newDataForm.append("state_changed_records",     JSON.stringify(state_changed_records));
+        newDataForm.append("state_planable_records",     JSON.stringify(state_holiday_planable));
+        console.log("all state holidays : " + JSON.stringify(state_changed_records));
+
+
+        //send the ajax request to the controller
         $.ajax({
-            url: "/dialog_management",
-            data: form_data,
-            type: "POST",
+            url: 'update',
+            type: 'PATCH',
+            data: newDataForm,
+            //This request expecting a response from server side
+            async: false,
+            //contentType option to false is used for multipart/form-data forms that pass files
+            contentType: false,
+            //processData is false jQuery simply sends whatever I specify as data in an Ajax request without any attempt to modify it by encoding as a query string.
+            processData: false,
+
+            //Response handling
             success: function (data) {
-                // after success the post request enable the all input fields.
-                $('.dialogannahmen-rows').find('input').prop('disabled', false);
-                $('.dialogannahmen-rows').removeClass('changed-row');
-                // send success notification to the browsers.
+                //if response the ajax request
+                var response = data;
+                //loop the response data and change the value of holiday_front_end_id to db id
+                if (response.length > 0) {
+                    for(var i= 0; i < response.length; i++) {
+                        $("input[name='holiday_front_end_id[]'][value='" + response[i].internal_id + "']").parent().find("input[name='holiday_db_id[]']").val(response[i].db_id);
+                    }
+                }
                 send_to_parent(success_notice());
-                // check the json data exist or not.
-                if (data.length > 0) {
-                    // if exist then loop the data array through every single element and change the db_id
-                    for (var i = 0; i < data.length; i++) {
-                        $("input[name='dialogannahmen_internal_frontend_id[]'][value='" + data[i].internal_id + "']").parent().find("input[name='dialogannahmen_db_id[]']").val(data[i].db_id)
-                    }
-                }
+                //set zero value to the changed records object
+                changed_records = [];
+                //set zero value to the created records object
+                created_records = [];
+                //reset state changed records array to save new records
+                state_changed_records = [];
+                //reset state holiday planable array to store new value
+                state_holiday_planable = [];
+
             },
+            //error handling
             error: function (data) {
-                // if error occuerd then grab that error
-                var error_response = JSON.parse(data.responseText);
-                if (error_response.length > 0) {
-                    // loop the error_response array through every sinle element
-                    for (var i = 0; i < error_response.length; i++) {
-                        // grab internal_id
-                        var _response_internal_id = error_response[i].internal_id;
-                        // and also grab the error mag where error_occured exactly.
-                        var _response_error_msh = error_response[i].error_msh;
-                        // go to the main row according to internal_id
-                        var _main_element = $("input[name='dialogannahmen_internal_frontend_id[]'][value='" + _response_internal_id + "']").closest(".dialogannahmen-rows");
-                        // check the error msg
-                        if (_response_error_msh === "Uhrzeit von liegt nach Uhrzeit bis") {
-                            // if error mag reletade to time then add red border for time-input-fields
-                            _main_element.find(".start_timepicker").addClass("border border-danger");
-                            _main_element.find(".end_timepicker").addClass("border border-danger");
-                        } else if (_response_error_msh === "Datum von liegt nach Datum bis") {
-                            // if error mag reletade to date then add red border for date-input-fields
-                            _main_element.find(".date_from").addClass("border border-danger");
-                            _main_element.find(".date_to").addClass("border border-danger");
-                        }
-                    }
-                }
-                // also send error notice to the browser.
                 send_to_parent(error_notice());
             }
-        });
-    });
 
-    // add perfect scrollbar for content div
-    const container = document.querySelector('.dialog-container');
-    const ps = new PerfectScrollbar(container);
-    // initialize lc switch for checkbox and alternative text
-    $("#dialogannahmenAktivierenCheckbox").lc_switch('Ja', 'Nein');
-    // create a dynamic id for new row. without unique id date and time picker doesnt pick date and time
-    var last_row = $("#dialog-container").children(".dialogannahmen-rows").last();
-    var last_row_value = parseInt(last_row.find(".dialogannahmen_internal_frontend_id").val());
-    var increment_last_row_value = 0;
-    if (last_row.length > 0) {
-        increment_last_row_value = last_row_value + 1
-    } else {
-        increment_last_row_value = 1
-    }
-    // clone a new row when add button clicked
-    $("#btn_add").click(function () {
-        var newField = $(".dialogannahmen-new-row-template").clone().removeClass("dialogannahmen-new-row-template d-none").addClass("dialogannahmen-rows");
-        newField.find(".dialogannahmen_internal_frontend_id").val(increment_last_row_value);
-        newField.find(".date-from-field").attr("id", "date_from_field_" + increment_last_row_value).addClass("date_from");
-        newField.find(".date-to-field").attr("id", "date_to_field_" + increment_last_row_value).addClass("date_to");
-        newField.find(".time-from-field").attr("id", "time-from-field_" + increment_last_row_value).addClass("start_timepicker");
-        newField.find(".time-to-field").attr("id", "time-to-field_" + increment_last_row_value).addClass("end_timepicker");
-        newField.find(".internal_db_id").addClass("dialogannahmen_db_id");
-        $("#dialog-container").append(newField);
-        increment_last_row_value += 1;
-        // scroll ganz bottom when new row added
-        scroll_to_bottom_of('#dialog-container');
-        addclass_when_data_changed();
-        //runn date picker
-        bind_date_from_picker();
-        bind_date_to_picker();
-        // run time picker
-        bind_start_timepicker();
-        bind_end_timepicker();
-        // run delete function
-        bind_delete_dialogannahme();
+        })
     });
-    addclass_when_data_changed();
-    //runn date picker
-    bind_date_from_picker();
-    bind_date_to_picker();
-    // run time picker
-    bind_start_timepicker();
-    bind_end_timepicker();
-    // run delete function
-    bind_delete_dialogannahme();
 });
 ````
 <sup align="right"><a href="#table-of-contents">Go to top</a></sup>
@@ -489,155 +565,206 @@ $('.dialog_management.index').ready(function () {
 Mapping: config/routes.rb
 
 ````ruby
-resources :dialog_management, only: [:index, :create, :destroy]
-  get '/dialog_management/:branch_id' => 'dialog_management#index'
+  get 'holidays/:branch_id' => 'holidays#index'
+  resources :holidays, only: [:index, :update, :destroy]
+  post 'holidays/get_holidays' => 'holidays#get_holidays'
 ````
 
-Controller: app/controllers/brand_management.rb
+Controller: app/controllers/holidays_controller.rb
 
 ````ruby
-class DialogManagementController < ApplicationPureBootstrapController
-  require 'odbc_runner/settings_helper.rb'
+class HolidaysHelperModel < ActiveRecord::Base
+  self.table_name = 'can_feiertage_helper'
+end
 
-  def index
-    # grab all data about branch
-    branch = get_branch_by_branch_id(params[:branch_id])
-    # create a hash with branch data and dialogannahe data
-    @dialog_management_data = {
-        :firma => branch.hdl_firma,
-        :filiale => branch.hdl_filiale,
-        :branch_id => params[:branch_id],
-        :dialogannagmen_status => Setting.find_by(wie_module: "Verwaltung Dialogannahmen aktiviert", wie_firma: branch.hdl_firma, wie_filiale: branch.hdl_filiale),
-        :dialogueacceptances => DialogueAcceptance.where(firma: branch.hdl_firma, filiale: branch.hdl_filiale)
-    }
+class Setting < ActiveRecord::Base
+  self.table_name = 'can_wiedenn'
+  self.primary_key = 'wie_id'
+end
+
+class HolidaysController < ApplicationPureBootstrapController
+  include HolidaysHelper
+  require 'settings_helper'
+  require 'json'
+
+  def get_holidays
+    #receive the state value
+    state = JSON.parse(params[:state])
+    #select the current year
+    year = Time.current.year
+
+    holidays = []
+    #filter the holiday according to state and current year
+    holidays.concat get_holidays_for_state(state, year)
+    holidays.concat get_holidays_for_country(year)
+    #increment current year
+    year = year + 1
+    #filter the holiday and collect them according to state and next year
+    holidays.concat get_holidays_for_state(state, year)
+    holidays.concat get_holidays_for_country(year)
+    #send back the filtered holidays as a response
+    render json: holidays
   end
 
-  def create
-    error_occured = []
-    saved_data = []
-    # if dialogannahmen_active_status param exist or not
-    if params.include? 'dialogannahmen_active_status'
-      dialogannahme_active_status = 1
-    else
-      dialogannahme_active_status = 0
-    end
-    # check time_slot parameter exist or not.
-    if params.include? 'dialog_time_slot'
-      # check time_slot value exist or not .
-      if params[:dialog_time_slot] === ""
-        # if does not exist then set a default value as 0
-        dialog_time_slot = '0'
-      else
-        # otherwise pramas value.
-        dialog_time_slot = params[:dialog_time_slot]
-      end
-      #  check firma and filiale exist or not.
-      if params[:firma] and params[:filiale].present?
-        # if exist dann update the status and time_slot value.
-        aktive_status_updated = Setting.find_by(
-            wie_module: "Verwaltung Dialogannahmen aktiviert",
-            wie_firma: params[:firma],
-            wie_filiale: params[:filiale]).update(
-            wie_onoff: dialogannahme_active_status,
-            wie_todo: dialog_time_slot)
-        unless aktive_status_updated
-          # unless update, returns ar error.
-          error_occured.push(1)
+  def index
+    #declare an instance variable to find a active branch
+    @branch = Branch.find_by(hdl_id: params[:branch_id])
+    #select which state is active
+    @which_state = get_setting_string('Bundesland für Feiertag', @branch.hdl_firma, @branch.hdl_filiale)
+    #select all holiday according to firma and filiale
+    @holidays = HolidaysHelperModel.where(firma: @branch.hdl_firma, filiale: @branch.hdl_filiale).order("datum ASC")
+  end
+
+  def update
+    # the result array that would be send back as response
+    result = []
+    # array to log if an error happened
+    error_occurred = []
+
+    # received state value to update state status
+    state_update = JSON.parse(params[:state_updated])
+    # received values to update existing holiday
+    changed_records_array = JSON.parse(params[:changed_records])
+    # received values to create new holiday
+    created_records_array = JSON.parse(params[:created_records])
+    # received state holidays when state changed
+    state_updated_records = JSON.parse(params[:state_changed_records])
+    # checkbox value when state would be changed
+    state_planable_records_array = JSON.parse(params[:state_planable_records])
+
+    begin
+      #if state changed then update the selected state value in can_wiedenn
+      if state_update.present?
+        #update state by changing state selector
+        state_updated = Setting.find_by(wie_firma: state_update['hdl_firma'].to_s.strip.to_i , wie_filiale: state_update['hdl_filiale'].to_s.strip.to_i, wie_module: 'Bundesland für Feiertag').update(wie_todo: state_update['state_value'])
+        unless state_updated
+          #if state not saved than push 1 as an error
+          error_occurred.push(1)
         end
       end
+    rescue Exception => e
+      logger.info "error to save holiday: #{e.to_s}"
+      render status: 404 , json: {code: 404, message: 'Method Not Found'}
     end
-    # check internal_frontend_id exist or not.
-    if params[:dialogannahmen_internal_frontend_id].present?
-      # if exist then loop it with index and value.
-      params[:dialogannahmen_internal_frontend_id].each_with_index do |val, index|
-        if val.to_i > 0
-          # if db_id exist then check every parameters has value
-          if params[:date_from][index] != "" and params[:time_from][index] != "" and params[:date_to][index] != "" and params[:time_to][index] != "" and params[:minus][index] != ""
-            # check the maximum time range.
-            if params[:time_from][index] <= "22:55" and params[:time_to][index] <= "22:55"
-              # create a date time parse.
-              start_date_time = Date.parse(params[:date_from][index]).to_s + "T" + params[:time_from][index] + ":00"
-              end_date_time = Date.parse(params[:date_to][index]).to_s + "T" + params[:time_to][index] + ":00"
-              # check end date time bigger than start date time or not.
-              if end_date_time > start_date_time
-                # check db_id exist or not.
-                if params[:dialogannahmen_db_id][index].to_i > 0
-                  # update the existing record
-                  begin
-                    DialogueAcceptance.find_by(id: params[:dialogannahmen_db_id][index]).update(
-                        date_from: params[:date_from][index],
-                        time_from: params[:time_from][index],
-                        date_to: params[:date_to][index],
-                        time_to: params[:time_to][index],
-                        minus: params[:minus][index],
-                        firma: params[:firma],
-                        filiale: params[:filiale])
-                  rescue Exception => e
-                    # unless save push an error_occured
-                    error_occured.push({:internal_id => val, :error_msh => "Datensatz wird nicht aktualisiert."})
-                    puts e.to_s
-                  end
-                  #   if db_id does not exist then create a new record
-                else
-                  begin
-                    # create a new record.
-                    create_new_dialogannahme = DialogueAcceptance.create(
-                        date_from: params[:date_from][index],
-                        time_from: params[:time_from][index],
-                        date_to: params[:date_to][index],
-                        time_to: params[:time_to][index],
-                        minus: params[:minus][index],
-                        firma: params[:firma],
-                        filiale: params[:filiale])
-                    saved_data.push({internal_id: val, db_id: create_new_dialogannahme['id']})
-                  rescue Exception => e
-                    error_occured.push({:internal_id => val, :error_msh => "Datensatz nicht erstellt."})
-                    puts e.to_s
-                  end
-                end
-              else
-                # if inputted date are not valid than return an error msg for date input field
-                if Date.parse(params[:date_to][index]) < Date.parse(params[:date_from][index])
-                  error_occured.push({:internal_id => val, :error_msh => "Datum von liegt nach Datum bis"})
-                end
-                # if inputted time are not valid than return an errors for time input fields.
-                if Date.parse(params[:date_to][index]) == Date.parse(params[:date_from][index])
-                  if params[:time_to][index] < params[:time_from][index]
-                    error_occured.push({:internal_id => val, :error_msh => "Uhrzeit von liegt nach Uhrzeit bis"})
-                  end
-                end
-              end
+
+
+
+    begin
+      # if state changed then save all holidays of that state
+      if state_updated_records.length > 0
+        # delete all the previous existing fixed holidays
+        HolidaysHelperModel.where(firma: state_update['hdl_firma'].to_s.strip.to_i, filiale: state_update['hdl_filiale'].to_s.strip.to_i, fest: 1).delete_all
+        state_updated_records.each do |single_element|
+          # create new holidays record according to state (insert into table)
+          create_state_holiday = HolidaysHelperModel.create(datum: single_element['holiday_date'].to_s.strip.to_date.strftime("%Y-%m-%d"), bezeichnung: single_element['holiday_name'], firma: state_update['hdl_firma'].to_s.strip.to_i, filiale: state_update['hdl_filiale'].to_s.strip.to_i, fest: 1)
+
+          unless create_state_holiday
+            # if holidays do not created  successfully
+            # push 1 as error message
+            error_occurred.push(1)
+          end
+        end
+      end
+      rescue Exception => e
+        logger.info "error to save holiday: #{e.to_s}"
+        render status: 404 , json: {code: 404, message: 'Method Not Found'}
+    end
+
+    begin
+      # update planable status when changed the state
+      if state_planable_records_array.length > 0
+        state_planable_records_array.each do |single_element|
+          # update the checkbox status to the database according to holiday date and name of that checkbox
+          state_planable_updated = HolidaysHelperModel.find_by(firma: state_update['hdl_firma'].to_s.strip.to_i, filiale: state_update['hdl_filiale'].to_s.strip.to_i, fest: 1, datum: single_element['state_holiday_date'].to_s.strip.to_date.strftime("%Y-%m-%d"), bezeichnung:single_element['state_holiday_name']).update(planable:single_element['planable_status'].to_i)
+          unless state_planable_updated
+            error_occurred.push(1)
+          end
+        end
+      end
+    rescue Exception => e
+      logger.info "error to save holiday: #{e.to_s}"
+      render status: 404 , json: {code: 404, message: 'Method Not Found'}
+    end
+
+    begin
+      # if the array has something we would loop it
+    if created_records_array.length > 0
+        # loop array
+        created_records_array.each do |single_element|
+          # db_id
+          db_id = single_element['db_id'].to_i
+          # to make sure that it is a new record
+          if db_id === 0
+            # create record (insert into table)
+            create_record = HolidaysHelperModel.create(datum: single_element['holiday_date'].to_s.strip.to_date.strftime("%Y-%m-%d"), bezeichnung: single_element['holiday_name'], planable: single_element['planable'].to_i, firma: state_update['hdl_firma'].to_s.strip.to_i, filiale: state_update['hdl_filiale'].to_s.strip.to_i)
+            # if create was successful
+            if create_record
+              # push the internal id and db id to the result array
+              puts "db_id: #{create_record['id']}  internal_id: #{single_element['internal_id']}"
+              result.push({db_id: create_record['id'], internal_id: single_element['internal_id']})
             else
-              error_occured.push({:internal_id => val, :error_msh => "Ungültiger Zeitbereich."})
+              # in case of an error add to error array
+              error_occurred.push(1)
             end
           end
         end
       end
+    rescue Exception => e
+      logger.info "error to save holiday: #{e.to_s}"
+      render status: 404 , json: {code: 404, message: 'Method Not Found'}
     end
 
-    # if occurred happend
-    if error_occured.length > 0
-      # then render head not found
-      render :status => :not_found, :json => error_occured
+    begin
+      if changed_records_array.length > 0
+        #update the customized holidays if changed anyting
+        changed_records_array.each do |single_element|
+          update_record = HolidaysHelperModel.find_by(id: single_element['db_id']).update(datum: single_element['holiday_date'].to_s.strip.to_date.strftime("%Y-%m-%d"), bezeichnung: single_element['holiday_name'], planable: single_element['planable'])
+          unless update_record
+            error_occurred.push(1)
+          end
+        end
+      end
+    rescue Exception => e
+      logger.info "error deleting holiday: #{e.to_s}"
+      render status: 304 , json: {code: 304, message: 'Method Not Modified'}
+    end
+    if error_occurred.length > 0
+      head :not_found
     else
-      # otherwise send ok status
-      render json: saved_data
+      render json: result
     end
   end
 
+
   def destroy
-    if params[:id].present?
-      # if exist then destroy it from the db
-      deleted_record = DialogueAcceptance.find_by(id: params[:id]).destroy
-      if deleted_record
-        head :ok
+    begin
+      #check db_id exist or not
+      if params[:db_id].present?
+        # if exist then find it and delete it
+        delete_records = HolidaysHelperModel.find_by(id: params[:db_id]).delete
+        #if successfully deleted
+        if delete_records
+          # show a success notification
+          head :ok
+          #if successfully not deleted
+        else
+          # show an error notification
+          head :not_found
+        end
+       #if  db_id not exist then show an error notification on browser
       else
         head :not_found
       end
+      #if db_id not found
+    rescue Exception => e
+      # send an error message in console
+      logger.info "error deleting holiday: #{e.to_s}"
+      # and also send an error message to the browser
+      render status: 400 , json: {code: 400, message: 'Method Not Allowed'}
     end
   end
-
 end
+
 
 ````
 
