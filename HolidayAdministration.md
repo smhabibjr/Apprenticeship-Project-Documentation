@@ -12,9 +12,7 @@
 
 ## Dialog Acceptance Management
 
-
-
-
+![image](https://user-images.githubusercontent.com/77357735/194566166-cd67b4e2-0c08-4f1d-8303-60a839508d6f.png)
 
 ## Project Description
 
