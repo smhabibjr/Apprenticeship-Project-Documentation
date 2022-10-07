@@ -43,6 +43,7 @@ Initialize modal box size : index.php
     echo " </font><br>";
 ````
 
+
 /dialog_acceptance_management.php
 
 ```php
@@ -169,6 +170,8 @@ $modal->create("html");
   = hidden_field_tag "dialogannahmen_internal_frontend_id[]", 0, class:"dialogannahmen_internal_frontend_id"
   = hidden_field_tag "dialogannahmen_db_id[]", 0, class:"internal_db_id"
 ````
+
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Form validation using JavaScript
 
