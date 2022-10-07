@@ -1,6 +1,3 @@
-## Dialog Acceptance Management
-![image](https://user-images.githubusercontent.com/77357735/183630682-b29d1a14-15ff-4140-b176-66449d9d9244.png)
-
 ## Table of Contents
 
 - [Project Description](#project-description)
@@ -12,6 +9,9 @@
 - Backend
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
+
+## Dialog Acceptance Management
+![image](https://user-images.githubusercontent.com/77357735/183630682-b29d1a14-15ff-4140-b176-66449d9d9244.png)
 
 
 ## Project Description
