@@ -1,6 +1,3 @@
-# Trademark Management System
-
-![image](https://user-images.githubusercontent.com/77357735/183359092-e543def1-480e-44c0-962d-086ab46b95ba.png)
 
 ## Table of Contents
 
@@ -13,6 +10,10 @@
   - [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
 
+# Trademark Management System
+
+![image](https://user-images.githubusercontent.com/77357735/183359092-e543def1-480e-44c0-962d-086ab46b95ba.png)
+
 
 ## Project Description
 
@@ -24,6 +25,7 @@ Backend: [Ruby](https://www.ruby-lang.org/de/), [PHP](https://www.php.net)
 
 Framework: [Ruby on Rails](https://rubyonrails.org/)
 
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Modal Dialog from php
 
@@ -58,7 +60,7 @@ $modal = new modalDialog(
 );
 $modal->create("html");
 ````
-
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Frontend Design with HAML and Bootstrap
 
@@ -79,6 +81,9 @@ $modal->create("html");
 = button_bar(class: 'button_center  d-flex justify-content-center button-bottom') do
   = button_bar_button(position: "", text: "Speichern", class: "markenverwaltungSaveButtons", id: "btnSubmit")
 ````
+
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
+
 
 ## Backend Handling with Ruby
 
@@ -128,6 +133,7 @@ class BrandManagementController < ApplicationPureBootstrapController
 end
 
 ````
+<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 ## Contact
 
