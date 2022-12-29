@@ -8,18 +8,73 @@
 
 ## Table of Contents
 
-- Add new toolbar icon in ckeditor
-  - [Frontend Design HTML](#frontend-design-html)
-  - [Frontend Design CSS](#frontend-design-css)
-  - [Frontend Design JavaScript](#frontend-design-javascript)
+- [Add new toolbar icon in ck-editor](#add-new-toolbar-icon-in-ckeditor)
 - Backend
   - [Backend Handling with PHP](#backend-handling-with-php)
 - [Contact](#contact)
 
-<!-- HOW TO RUN -->
-## Project Description
+## Add new toolbar icon in ckeditor
 
-## Technologies and Programming Languages
+![image](https://user-images.githubusercontent.com/77357735/209978014-e10e2f51-246b-47a7-9a2d-c68a96ae90b1.png)
+
+create a new plugin file under CKEditor/plugins folder.
+````
+R:\odbcrunner\app\assets\javascripts\ckeditor\plugins\placeholderSetting\plugin.js
+
+CKEDITOR.plugins.add('placeholderSetting',
+    {
+        init: function (editor) {
+            // add placeholder menu with icon to the editor
+            editor.ui.addButton('placeholderSetting',
+                {
+                    label: "Platzhalter hinzufügen",
+                    command: 'mySimpleCommand',
+                    toolbar: 'insert,100',
+                    icon: this.path + 'setting-48.png',
+                });
+        }
+    });
+````
+
+Initialize new added plugin in config.js file as extraPlugins.
+
+````javaScript
+CKEDITOR.editorConfig = function (config) {
+    // Define changes to default configuration here.
+    // For complete reference see:
+    // http://docs.ckeditor.com/#!/api/CKEDITOR.config
+    config.extraPlugins = 'entities';
+
+    config.uiColor = '#ff9c38';
+
+    config.extraPlugins = 'strinsert,base64image,attach,placeholderSetting';
+    // // The toolbar groups arrangement, optimized for two toolbar rows.
+    config.toolbar = [
+        { name: 'clipboard', groups: [ 'clipboard', 'undo' ], items: [ 'Cut', 'Copy', 'Paste', 'PasteText', '-', 'Undo', 'Redo' ] },
+        { name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },
+
+        { name: 'insert', items: [ 'base64image', 'Table', 'HorizontalRule', 'SpecialChar' ] },
+        { name: 'tools', items: [ 'Maximize', 'Attachments'] },
+        { name: 'others', items: [ 'strinsert', 'placeholderSetting' ] },
+        '/',
+        { name: 'basicstyles', groups: [ 'basicstyles', 'cleanup' ], items: [ 'Bold', 'Italic', 'Strike', 'RemoveFormat' ] },
+        { name: 'paragraph', groups: [ 'list', 'indent', 'blocks', 'align', 'bidi' ], items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote' ] },
+        { name: 'styles', items: [ 'Format' ] }
+    ];
+
+    // Set the most common block elements.
+    config.format_tags = 'h1;h2;h3;pre';
+
+    // Simplify the dialog windows.
+    config.removeDialogTabs = 'image:advanced;link:advanced';
+
+    config.enterMode = CKEDITOR.ENTER_BR;
+
+    // Do not load any file. The styles set is empty.
+    config.stylesSet = false;
+};
+````
+
 
 
 
