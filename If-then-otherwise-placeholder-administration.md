@@ -9,8 +9,8 @@
 ## Table of Contents
 
 - [Add new toolbar icon in ck-editor](#add-new-toolbar-icon-in-ckeditor)
-- Backend
-  - [Backend Handling with PHP](#backend-handling-with-php)
+- [Add modal box when click the new added icon](#open-modal-box)
+- [Backend Handling with Ruby](#backend-handling-with-ruby)
 - [Contact](#contact)
 
 ## Add new toolbar icon in ckeditor
@@ -74,561 +74,570 @@ CKEDITOR.editorConfig = function (config) {
     config.stylesSet = false;
 };
 ````
+## Open Modal Box
 
+Custom placeholder modal box (using HAML)
 
+````hmal
+#modal_for_placeholder_setting{:style => "display: none; width:500px; height: 400px;"}
+  .main-container
+    .header-section{:style => "display: flex; justify-content:center;margin-bottom:15px"}
+      %label{:style => "font-size:25px;font-weight:bold"} Platzhaltereinstellung
+      = hidden_field_tag :get_hdl_id,  params[:hdl_id]
+      = hidden_field_tag :get_hdl_filiale, @branch[:hdl_filiale]
+      = hidden_field_tag :get_hdl_firma, @branch[:hdl_firma]
+    %hr{:style => "border: solid 1px #F08A00"}
+    .add-placeholder
+      %label{ for: 'text-vorgaben', :style => "font-size:15px;font-weight:bold"} Neuer Platzhalter
 
+      .placeholder_div{:id => "placeholder_div",:style => "display:flex; justify-content: space-between; margin-top:5px;width:100%;"}
+        = hidden_field_tag :existing_placeholder_db_id,0,{:class => "placeholder_db_id"}
+        = text_field_tag("new_and_existing_placeholder", '',  :style => "width:98%;height:24px;margin-bottom:10px;", :class => "placeholder_name form-inputs", :type => "text",:required => true, :name => "existing_placeholder")
+        .delete-button-div{:style => "display:none"}
+          .btn.btn-danger.border-0.rounded-0{:id => "placeholder-del-btn", :style => "background:rgb(255, 156, 56);height: 30px;width: 30px;display: flex;justify-content: center;align-items: center;"}
+            %i.fa.fa-trash
+      .wenn-label
+        %label{:style => "font-size:15px;font-weight:bold"} WENN
+      .row{:style => "margin-top: 5px; display:flex; justify-content:space-between"}
+        .column
+          %label{ for: 'placeholder-selector' ,:style => "font-size:15px;"} Eingabe
+        .column
+          %label{ for: 'text-vorgaben', :style => "font-size:15px"} Vergleich
+        .column
+          %label{ for: 'text-vorgaben', :style => "font-size:15px"} Vergleichen mit
 
-## Frontend Design HTML
-
-```html
-<div id="overDiv">
-        <div id="formPanel">
-            <ul class="dynamicButtonList">
-                <?php while ($res = mysql_fetch_row($result)) { ?>
-                    <li class='list_item'>
-                        <span class="input-text-1-wtp pdfPreview button-gray-1-wtp button-1-wtp"
-                              data-url="<?php echo "/eins/html/" . $res[2]; ?>">
-                            <span class="input-text-1-wtp pdfPreviewText">
-                                <?php echo utf8_decode($res[1]); ?>
-                            </span>
-                        </span>
-                        <div id="delete_<?php echo $res[0]; ?>" class="deletePdf button-1-wtp">
-                            <span class='ui-icon ui-icon-trash deleteIcon '></span>
-                        </div>
-                    </li>
-                <?php } ?>
-            </ul>
-        </div>
-        <div id="buttonPanel">
-            <div class="button-1-wtp" id="newChecklist">
-                Checkliste hinzufügen
-            </div>
-            <div id="displayDocuWrap">
-                <div id="displayDocu" class="button-gray-1-wtp button-1-wtp">
-                    Dokumentation anzeigen
-                </div>
-            </div>
-        </div>
-    </div>
-```
-<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
-
-## Frontend Design CSS
-
-````css
-<style type="text/css">
-            #overDiv {
-                /*position: absolute;*/
-                height: 340px;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                top: 0;
-                left: 0;
-            }
-
-            #formPanel {
-                position: relative;
-                float: left;
-                width: 70%;
-                height: 98%;
-                margin: 0;
-                padding: 0;
-                overflow-y: scroll;
-            }
-
-            .dynamicButtonList {
-                margin-top: 1%;
-                margin-bottom: 1%;
-            }
-
-            .list_item {
-                position: relative;
-                height: 24px;
-                width: 90%;
-                font-size: 12px;
-                list-style-type: none;
-                margin-bottom: 10px;
-                text-align: left;
-            }
-
-            #buttonPanel {
-                position: relative;
-                float: right;
-                height: 98%;
-                width: 30%;
-                margin: 0;
-                padding: 0;
-                text-align: center;
-            }
-
-            #newChecklist {
-                position: relative;
-                width: 80%;
-                margin: 0 auto;
-                float: unset;
-            }
-
-            #displayDocuWrap {
-                position: absolute;
-                width: 100%;
-                bottom: 0;
-
-            }
-
-            #displayDocu {
-                position: relative;
-                width: 80%;
-                margin: 0 auto;
-                float: unset;
-            }
-
-            body {
-                height: auto;
-                overflow-x: hidden;
-                overflow-y: hidden;
-                padding-bottom: 0;
-                margin-bottom: 0;
-            }
-
-            .pdfPreview {
-                position: relative;
-                width: 85%;
-                height: 100%;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .pdfPreviewText {
-                position: relative;
-                width: 100%;
-                overflow: hidden;
-                display: block;
-                text-overflow: ellipsis;
-                color: white;
-            }
-
-            .deletePdf {
-                height: 28px;
-                width: 10%;
-                float: right;
-            }
-
-            .deleteIcon {
-                margin-right: auto;
-                margin-left: auto;
-            }
-
-            .belowCenter {
-                position: relative;
-                display: block;
-                float: unset;
-                margin-left: auto;
-                margin-right: auto;
-                margin-bottom: 0;
-                margin-top: 0;
-                /*width: 650px;*/
-                padding: 0;
-                height: 26px;
-                text-align: center;
-            }
-
-            .divider {
-                position: relative;
-                border-bottom: 1px solid #F08A00;
-                height: 0;
-                margin-bottom: 3px;
-                padding-bottom: 10px;
-                margin-left: 1%;
-                margin-right: 1%;
-            }
-
-            #jumpToOwnText {
-                color: white;
-            }
-
-            .container-file-upload-1-wtp {
-                width: 300px;
-                margin-bottom: 10px;
-
-            }
-
-            .dynamicButtonList > li > :first-child > .ui-button-text {
-                padding: 0;
-            }
-
-            .container-file-upload-1-wtp {
-                height: 20px;
-                width: 280px;
-            }
-            
-            #fakeButton {
-                background: rgb(255,156,56);
-                color: white;
-                border: 0;
-                position: relative;
-                height: 100%;
-                margin: -4px;
-            }
-
-            #overButton {
-                width: 280px;
-                height: 25px;
-                margin-bottom: 10px;
-                margin-top: 5px;
-                margin-left: 12px;
-            }
-
-            #submitButton {
-                margin-top: 5px;
-            }
-
-            #filename {
-                width: 184px;
-                position: relative;
-                height: 100%;
-                background-color: rgb(102,96,92);
-                border: 0;
-                color: white;
-            }
-
-        </style>
+      .row{:style => "margin-top: 5px; display:flex; justify-content:space-between;width: 98%;"}
+        .column{:style => "width:100%;height:30px;"}
+          = select_tag :placeholder_name, options_for_select([], params[:placeholder_name]),style: "width:100%;height:100%;",:required => true, class:"form-inputs ", id: "placeholder-selector"
+        .column{:style => "width:100%;height:30px;"}
+          = select_tag :compaire, options_for_select([]), class: "form-inputs",:required => true, style: "width:100%;height:100%;", id: "placeholder-compare"
+        .column{:style => "width:100%;height:30px;"}
+          %span{:id => "compare-with-area" }
+          -#=text_field_tag("compare-with", '',  :style => "width:100%;height:24px", :class => "compare-with validation", :type => "text",:required => true, :placeholder => "", :name => "compare-with")
+    .add-placeholder-result{:style => "margin-top:5px"}
+      %label{:style => "font-size:15px;"} Dann diesen Text einfügen:
+      .placeholder-result{:style => "display: flex;margin-top:5px"}
+        = text_area_tag 'dann-text', nil, class: 'dann-text form-inputs ', style: 'width:100%;height:40px;resize:none;'
+    .add-placeholder-result{:style => "margin-top:5px"}
+      %label{:style => "font-size:15px;"} Sonst diesen Text einfügen:
+      .placeholder-result{:style => "display: flex;margin-top:5px"}
+        = text_area_tag 'sonst-text', nil, class: 'sonst-text form-inputs ', style: 'width:100%;height:40px;resize:none;'
+    .placeholder-save{:style => "display: flex; justify-content:center;margin-top:15px"}
+      .button-1-wtp.buttonWithBoldText-1-wtp.button-padding-1-wtp#savePlaceholder{:type => "submit"} Speichern
 ````
+Add functionality
 
-<sup align="right"><a href="#table-of-contents">Go to top</a></sup>
-
-## Frontend Design JavaScript
-````javascript
-<script>
-
-        $('.deletePdf')
-            .addClass("ui-state-hover")
-            .mouseout(function () {
-                $(this)
-                    .addClass("ui-state-hover");
-            });
-
-        function HandleBrowseClick() {
-            var fileinput = document.getElementById("upload");
-            fileinput.click();
-        }
-
-        function Handlechange() {
-            var fileinput = document.getElementById("upload");
-            var textinput = document.getElementById("filename");
-            textinput.value = fileinput.value.replace(/.*fakepath[\/\\]/i, '');
-        }
-
-        $('.container-file-upload-1-wtp').button();
-
-        $(".input-file-upload-button-1-wtp").change(function (e) {
-            $("#uploadFile").val($(this).val());
-        });
-        $(".container-file-upload-1-wtp").mouseover(function (e) {
-            $(this).css("cursor", "pointer");
-        }).click(function (e) {
-//            $("#upload").trigger("click");
-        });
-        $("#uploadFile").mouseover(function (e) {
-            $(this).css("cursor", "pointer");
-        });
-
-        $(document).ready(function () {
-            $("#jumpToOwn").on("change", function (e) {
-                e.preventDefault();
-                var check = document.getElementById("jumpToOwn").checked ? 1 : 0;
-                $.ajax({
-                    type: "GET",
-                    url: "admin_interface.php?checkbox=" + check,
-                    success: function (e) {
-                        console.log(e);
-                        var msg = {
-                            type: "notify",
-                            style: "default",
-                            title: "Wert gespeichert",
-                            text: "",
-                            expires: 2000
-                        };
-                        parent.postMessage(msg, "http://<?php echo $_SERVER["HTTP_HOST"];?>");
-                    },
-                    error: function (e) {
-                        alert("Fehler beim Speichern des Wertes, bitte versuchen Sie es erneut oder kontaktieren Sie Ihren Suppor");
-                        $("#jumpToOwn").attr("checked");
-                        console.log(e.data);
-                    }
-                });
-            });
-            $("#dontFlatten").on("change", function (e) {
-                e.preventDefault();
-                var check = document.getElementById("dontFlatten").checked ? 1 : 0;
-                $.ajax({
-                    type: "GET",
-                    url: "admin_interface.php?dontFlatten=" + check,
-                    success: function (e) {
-                        var msg = {
-                            type: "notify",
-                            style: "default",
-                            title: "Wert gespeichert",
-                            text: "",
-                            expires: 2000
-                        };
-                        parent.postMessage(msg, "http://<?php echo $_SERVER["HTTP_HOST"];?>");
-                    },
-                    error: function (e) {
-                        alert("Fehler beim Speichern des Wertes, bitte versuchen Sie es erneut oder kontaktieren Sie Ihren Suppor");
-                        $("#dontFlatten").attr("checked");
-                    }
-                });
-            });
-            document.addEventListener("DOMNodeInserted", function (e) {
-                $(".deletePdf").off().button().click(function (e) {
-                    e.preventDefault();
-                    var id = this.id.substring(7);
-                    var tmp = $(this);
-                    var choice = window.confirm("Dieses Dokument wird unwiderruflich gelöscht. Fortfahren?");
-                    if (choice == true) {
-                        $.ajax({
-                            url: "admin_interface.php?delete=" + id,
-                            method: "GET",
-                            success: function (e) {
-                                //parent.postMessage("close_modal", "http://<?php echo $_SERVER["HTTP_HOST"];?>");
-                                tmp.parent().remove();
-                            },
-                            error: function (e) {
-                                alert("Es ist ein Fehler aufgetreten, bitte noch einmal probieren oder Ihren Support kontaktieren.");
-                            }
-                        })
-                    }
-                });
-                $(".pdfPreview").off().button().click(function (event) {
-                    event.preventDefault();
-                    window.open($(this).data("url"), "_blank");
-                });
-            });
-
-            $("#uploadForm").submit(function (e) {
-                e.preventDefault();
-                var formData = new FormData($('form')[2]);
-                $.ajax({
-                    url: "admin_interface.php?upload=1",
-                    type: "POST",
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (e) {
-                        $.modal.close();
-                        $.get("admin_interface.php?getLast=1", function (data) {
-                            $(".dynamicButtonList").append(data);
-                        });
-                    },
-                    error: function (e) {
-                        alert("Fehler beim Hochladen");
-                        console.log(e.data);
-                    }
-                });
-            });
-            $(".pdfPreview").off().button().click(function (event) {
-                event.preventDefault();
-                window.open($(this).data("url"), "_blank");
-            });
-            $("#newChecklist").button().click(function (event) {
-                event.preventDefault();
-                $.modal($("#uploadDiv"));
-//                {
-//                    onOpen: function (dialog) {
-//                        dialog.overlay.css("width", "100%");
-//                        dialog.overlay.css("height", "100%");
-//                        dialog.overlay.fadeIn("fast", function () {
-//                            dialog.container.slideDown("fast", function () {
-//                                dialog.data.fadeIn("fast");
-//                            });
-//                        });
-//                    }
-//                }
-            });
-            $("#displayDocu").button().click(function (event) {
-                event.preventDefault();
-                window.open("/eins/html/downloads/formulare/checklisten/documentation/doku.pdf", "Doku", "height=600,width=800");
-            });
-            $("body").css("height", document.body.scrollHeight);
-            $(".deletePdf").off().button().click(function (e) {
-                e.preventDefault();
-                var id = this.id.substring(7);
-                var tmp = $(this);
-                var choice = window.confirm("Dieses Dokument wird unwiderruflich gelöscht. Fortfahren?");
-                if (choice == true) {
-                    $.ajax({
-                        url: "admin_interface.php?delete=" + id,
-                        method: "GET",
-                        success: function (e) {
-                            //parent.postMessage("close_modal", "http://<?php echo $_SERVER["HTTP_HOST"];?>");
-                            tmp.parent().remove();
-                        },
-                        error: function (e) {
-                            alert("Es ist ein Fehler aufgetreten, bitte noch einmal probieren oder Ihren Support kontaktieren.");
+````javaScript
+$(document).ready(function () {
+                // after click the placeholder setting icon
+                $(".cke_button__placeholdersetting").off().click(function () {
+                    $("#existing_placeholder_db_id").val(0);
+                    $("#existing_placeholder").css("width", "98%");
+                    $(".delete-button-div").css("display", "none");
+                    $("#new_and_existing_placeholder").val('');
+                    $("#dann-text").val('');
+                    $("#sonst-text").val('');
+                    $('#placeholder-compare').find('option').remove().end();
+                    // open a new the placeholder setting modal box
+                    $("#modal_for_placeholder_setting").modal();
+                    // grab the existing placeholder and make a new placeholder dropdown menu
+                    $("#new_and_existing_placeholder").focus();
+                    var placeholder_ = get_keywords_for_communication();
+                    remove_some_placeholder = $.grep(placeholder_, function (placeholder, index) {
+                        return placeholder[0] !== '__HDL_NAME__' && placeholder[0] !== '__EINGRIFFE_FORTLAUFEND__';
+                    });
+                    var _placeholder_selector = $('#placeholder-selector');
+                    _placeholder_selector.find('option').remove().end().append('<option value="">Auswählen</option>');
+                    if (_placeholder_selector.prop('options').length !== remove_some_placeholder.length) {
+                        for (var i = 0; i < remove_some_placeholder.length; i++) {
+                            var placeholder_value = remove_some_placeholder[i][0];
+                            var placeholder_text = remove_some_placeholder[i][1];
+                            _placeholder_selector.append($(document.createElement('option')).prop({
+                                value: placeholder_value,
+                                text: placeholder_text
+                            }));
                         }
-                    })
-                }
+                    }
+
+                    var selector = $("#compare-with-area");
+                    selector.html(getTxtbox());
+                    //on change update the compaire value
+                    _placeholder_selector.on("change", function () {
+                        var selected_option = $(this).val();
+                        $.ajax({
+                            url: "/communication/templates/update_custom_placeholder",
+                            type: "POST",
+                            data: {placeholder_value: selected_option},
+                            dataType: 'json',
+                            success: function (data) {
+                                const _response_data = data;
+                                if (_response_data.length > 0) {
+                                    for (var i = 0; i < _response_data.length; i++) {
+                                        var response_object = {
+                                            status: _response_data[i].status,
+                                            pl_db_id: _response_data[i].pl_db_id,
+                                            branch_id: _response_data[i].branch_id,
+                                            custom_pl_name: _response_data[i].custom_pl_name,
+                                            custom_pl_value: _response_data[i].custom_pl_value,
+                                            pl_name: _response_data[i].pl_name,
+                                            pl_value: _response_data[i].pl_value,
+                                            compare_value: _response_data[i].compare_value,
+                                            compare_with: _response_data[i].compare_with,
+                                            dann_text: _response_data[i].dann_text,
+                                            sonst_text: _response_data[i].sonst_text,
+                                        };
+                                        if (_response_data[i].status === 'placeholder already exist') {
+                                            $("#existing_placeholder").css("width", "90%");
+                                            $(".delete-button-div").css("display", "block");
+                                            $("#existing_placeholder_db_id").val(response_object['pl_db_id']);
+                                            update_or_create_new_placeholder(selected_option, response_object);
+                                        } else if (_response_data[i].status === 'placeholder not exist') {
+                                            $("#existing_placeholder").css("width", "98%");
+                                            $(".delete-button-div").css("display", "none");
+                                            $("#existing_placeholder_db_id").val(0);
+                                            update_or_create_new_placeholder(selected_option);
+                                        }
+                                    }
+                                }
+                            },
+                            error: function (data) {
+                            }
+                        });
+
+                        _compare_operator = [
+                            ['gleich', 'Gleich'],
+                            ['ungleich', 'Ungleich'],
+                            ['kleiner_als', 'Kleiner als'],
+                            ['groesser_als', 'Größer als'],
+                            ['kleiner_oder_gleich', 'Kleiner oder gleich'],
+                            ['groesser_or_gleich', 'Großer oder gleich']
+                        ];
+                    });
+
+                    function update_or_create_new_placeholder(selected_option, data_object = 0) {
+                        var {status, pl_value,custom_pl_value} = data_object;
+                        var hdl_firma = $("#get_hdl_firma").val();
+                        var hdl_filiale = $("#get_hdl_filiale").val();
+                        if (data_object === 0) {
+                            var _seleted_placeholder = selected_option;
+
+                        } else {
+                            _seleted_placeholder = pl_value;
+                        }
+
+                        switch (_seleted_placeholder) {
+                            case '__MARKE__':
+                                selector.html(getTxtbox());
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "z.B: DAC", data_object);
+
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "z.B: DAC");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__WP_AUTO__':
+                                selector.html(getTxtbox());
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "Dacia Logan Express", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "Dacia Logan Express");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__WP_KENNZ__':
+                                selector.html(getTxtbox());
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "MEI-XC 2753", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "MEI-XC 2753");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__BENUTZER_NAME__':
+                                selector.html(getDropdown('benutzer_or_kundenberater'));
+                                getUserAndKundenberater("username", hdl_firma, hdl_filiale);
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "1-wtp Support", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "MEI-XC 2753");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__WP_DATUM__':
+                                selector.html(getTxtbox());
+                                $("#compare-with").addClass("date-picker");
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "12.10.2022", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "12.10.2022");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__WP_ZEIT__':
+                                selector.html(getTxtbox());
+                                $("#compare-with").addClass("time-picker");
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "07:15", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "07:15");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__ABHOLDATUM__':
+                                selector.html(getTxtbox());
+                                $("#compare-with").addClass("date-picker");
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "12.10.2022", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "07:15");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__ABHOLZEIT__':
+                                selector.html(getTxtbox());
+                                $("#compare-with").addClass("time-picker");
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "07:15", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(_compare_operator.length, "07:15");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__ERSATZWAGEN__':
+                                selector.html(getDropdown('ersatzwagen'));
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "ja / nein", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "ja / nein");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__EINGRIFFE_BLOCK__':
+                                selector.html(getTxtbox());
+                                $("#placeholder-compare").empty();
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(0, "Hauptuntersuchung", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(0, "Hauptuntersuchung");
+                                }
+                                check_ele_has_date_or_time_picker();
+                                break;
+                            case '__KUNDENBERATER__':
+                                selector.html(getDropdown('benutzer_or_kundenberater'));
+                                getUserAndKundenberater("kundenberater", hdl_firma, hdl_filiale);
+                                if (status === "placeholder already exist") {
+                                    update_compare_operator_and_placeholder(2, "Kalle Annahme", data_object);
+                                } else {
+                                    update_compare_operator_and_placeholder(2, "Kalle Annahme");
+                                }
+                                check_ele_has_date_or_time_picker();
+                        }
+                    }
+
+
+                    function getUserAndKundenberater(parameter, firma = 0, filiale = 0) {
+                        $.ajax({
+                            url: "/communication/templates/get_user_and_kundenberater",
+                            type: "POST",
+                            async: false,
+                            data: {placeholder_name: parameter, die_firma: firma, die_filiale: filiale},
+                            dataType: 'json',
+                            success: function (data) {
+                                var _response_date = data;
+                                if (_response_date.length > 0) {
+                                    for (var i = 0; i < _response_date.length; i++) {
+                                        $("#compare-with").append($(document.createElement('option')).prop({
+                                            value: _response_date[i],
+                                            text: _response_date[i]
+                                        }))
+                                    }
+                                }
+                            },
+                            error: function (data) {
+                            }
+
+
+                        });
+                    }
+
+
+                    // default input text field
+                    function getTxtbox() {
+                        return '<input class="compare-with form-inputs" type="text" id="compare-with" style="width:100%;height:80%;" required>'
+                    }
+
+                    // dropdown menu for ersatzwagen , benutzer and kundenberater
+                    function getDropdown(placeholder) {
+                        if (placeholder === "ersatzwagen") {
+                            return [
+                                '<select name="ersatzwagen_status" id="compare-with" title="Auswählen" style="width:106%;height:30px" class="form-inputs compare-with" data-width="15%" required>',
+                                '<option value="ja">Ja</option>',
+                                '<option value="nein">Nein</option>',
+                                '</select>'
+                            ].join('');
+                        } else if (placeholder === "benutzer_or_kundenberater") {
+                            return [
+                                '<select id="compare-with" title="Auswählen" style="width:106%;height:30px" class="form-inputs compare-with" data-width="15%" required>',
+                                '<option value="">Auswählen</option>',
+                                '</select>'
+                            ].join('');
+                        }
+                    }
+
+                    // check compare with input field has time or date picker
+                    function check_ele_has_date_or_time_picker() {
+                        if ($("#compare-with").hasClass("date-picker")) {
+                            $("#compare-with").attr("readonly", true);
+                            run_date_picker();
+                        } else if ($("#compare-with").hasClass("time-picker")) {
+                            $("#compare-with").attr("readonly", true);
+                            run_time_picker();
+                        }
+                    }
+
+                    // run time picker
+                    function run_time_picker() {
+                        $(".time-picker").timepicker({
+                            rows: 2,
+                            showPeriodLabels: false,
+                            minuteText: 'Minute',
+                            hourText: 'Stunde',
+                            closeText: 'Fertig',
+                            showCloseButton: true,
+                            minutes: {
+                                starts: 0,
+                                interval: 5
+                            },
+                            //stunden anzeige
+                            hours: {
+                                starts: 5,
+                                ends: 22
+                            }
+                        });
+                    }
+
+                    // run date picker
+                    function run_date_picker() {
+                        $(".date-picker").datepicker({
+                            addSliderAccess: true, <!-- Formatierung für Touchdevices. Buttons zur Touchbedienung -->
+                            sliderAccessArgs: {touchonly: false}, <!-- Touch -->
+                            changeYear: true,
+                            showButtonPanel: false,
+                            dateFormat: 'dd.mm.yy', <!-- Deutsches Format fuer Textfeld -->
+                            showOtherMonths: true,
+                            numberOfMonths: 2,
+                            showWeek: true,
+                            showAnim: 'slideDown',
+                            altField: '#hidden_range_from',
+                            altFormat: "yy-mm-dd",
+                            onClose: function (date) {
+                            }
+                        });
+                    }
+
+                    // function to change the compare operators
+                    function update_compare_operator_and_placeholder(compare_operator_length, placholder_text, update_data = 0) {
+
+                        $("#placeholder-compare").empty();
+
+                        $("#compare-with").attr("placeholder", placholder_text);
+                        if (compare_operator_length === 0) {
+                            $("#placeholder-compare").append($(document.createElement('option')).prop({
+                                value: "include",
+                                text: "Enthalten"
+                            }));
+                        } else if (compare_operator_length > 0) {
+                            for (var i = 0; i < compare_operator_length; i++) {
+                                var compare_operator_value = _compare_operator[i][0];
+                                var compare_operator_text = _compare_operator[i][1];
+                                $("#placeholder-compare").append($(document.createElement('option')).prop({
+                                    value: compare_operator_value,
+                                    text: compare_operator_text
+                                }));
+                            }
+                        }
+                        // update existing placeholder if placeholder exist in db
+                        if (update_data !== 0) {
+                            var {status, pl_db_id, custom_pl_name, pl_value, compare_value, compare_with, dann_text, sonst_text} = update_data;
+                            $("#new_and_existing_placeholder").val(custom_pl_name);
+                            $("#placeholder-selector").val(pl_value);
+                            $("#placeholder-compare").val(compare_value);
+                            $("#compare-with").val(compare_with);
+                            $("#dann-text").val(dann_text);
+                            $("#sonst-text").val(sonst_text);
+                        } else {
+                            $("#dann-text").val('');
+                            $("#sonst-text").val('');
+                        }
+                    }
+
+
+                    $("#savePlaceholder").off().click(function (e) {
+                        e.preventDefault();
+                        // grab the form value after click the save button and save these as an object
+                        var _data = {
+                            placeholder_db_id: $("#existing_placeholder_db_id").val(),
+                            new_placeholder_name: $("#new_and_existing_placeholder").val(),
+                            placeholder_name: $('#placeholder-selector option:selected').text(),
+                            placeholder_value: $('#placeholder-selector option:selected').val(),
+                            compare_name: $("#placeholder-compare").val(),
+                            compare_with: $("#compare-with").val(),
+                            dann_text: $("#dann-text").val(),
+                            sonst_text: $("#sonst-text").val(),
+                            branch_id: $("#communication_template_branch_id").val()
+                        };
+                        // and send a ajax request to save the new placeholder.
+                        var _dataform = new FormData();
+                        _dataform.append('placeholder_data', JSON.stringify(_data));
+                        if (form_validation()) {
+                            show_loading_div({loading_text: I18n.patient.save});
+                            $.ajax({
+                                url: "/communication/templates/save_placeholder",
+                                type: "POST",
+                                data: _dataform,
+                                sync: false,
+                                processData: false,
+                                contentType: false,
+                                success: function (data) {
+                                    send_to_parent(success_notice(data[0].status));
+                                    $("#new-placeholder-name").val('');
+                                    $('#placeholder-selector').prop('selectedIndex', 0);
+                                    $("#compare-with").val('');
+                                    $("#dann-text").val('');
+                                    $("#sonst-text").val('');
+                                    $.modal.close();
+                                    CKEDITOR.instances['smstextarea'].destroy();
+                                    CKEDITOR.instances['mailtextarea'].destroy();
+                                    init_editors();
+                                    hide_loading_div();
+
+                                },
+                                error: function (data) {
+                                    send_to_parent(error_notice(data.responseJSON[0].status));
+                                    hide_loading_div();
+
+                                }
+                            });
+                        } else {
+                            send_to_parent(error_notice("Eingabefelder dürfen nicht leer sein"));
+                        }
+                        remove_red_border_after_validation();
+                    });
+
+                    $("#placeholder-del-btn").off().click(function (e) {
+                        var parent_div = $(this).closest("#placeholder_div");
+                        var delete_placeholder_id = parent_div.find("#existing_placeholder_db_id").val();
+                        if (delete_placeholder_id > 0) {
+                            show_loading_div({loading_text: I18n.patient.save});
+                            $.ajax({
+                                url: "/communication/templates/delete_existing_placeholder",
+                                type: "POST",
+                                data: {delete_placeholder_id: delete_placeholder_id},
+                                dataType: 'json',
+                                success: function (data) {
+                                    send_to_parent(success_notice(data[0].status));
+                                    $.modal.close();
+                                    CKEDITOR.instances['smstextarea'].destroy();
+                                    CKEDITOR.instances['mailtextarea'].destroy();
+                                    init_editors();
+                                    hide_loading_div();
+
+                                },
+                                error: function (data) {
+                                }
+                            })
+                        }
+                    });
+
+                    // on change or keyup remove the red border
+                    function remove_red_border_after_validation() {
+                        $(".form-inputs").on("keyup change", function (e) {
+                            $(this).css("border", "solid 1px green");
+                            $(this).removeClass("invalid");
+                        });
+                    }
+
+                    // function to validate the form
+                    function form_validation() {
+                        var val = 0;
+                        $(".main-container").find(".form-inputs").each(function (element, index) {
+                            if ($(this).prop('required')) {
+                                if ($(this).is(":visible")) {
+                                    if ($(this).val() === '') {
+                                        $(this).css('border', 'solid 1px red');
+                                        $(this).addClass('invalid');
+                                        val++;
+                                    }
+                                }
+                            }
+                        });
+                        if (val === 0) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
             });
-        });
-    </script>
 ````
 <sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
-## Backend Handling with PHP
+## Backend Handling with Ruby
 
-````php
-if (isset($_GET["delete"])) {
-    $sql = "SELECT checkl_url,checkl_name FROM can_checklisten WHERE id = " . $_GET["delete"];
-    $checkl = mysql_query($sql);
-    list($checkl_url, $checkl_name) = mysql_fetch_row($checkl);
-    $sql = "DELETE FROM can_checklisten WHERE id = " . $_GET["delete"];
-    $result = mysql_query($sql, $dbi);
-    if ($result === true && mysql_affected_rows() > 0) {
-        $fN = basename($checkl_url);
-        $deleteRelativeFolder = "downloads/formulare/checklisten/own/";
-        $tD = realpath(dirname(__FILE__) . "/../../../" . $deleteRelativeFolder);
-        $delFile = $tD . "/" . $fN;
+Default placeholder as Ruby Array
 
-        unlink($delFile);
-        exit();
-    } else {
-        header("HTTP/1.0 404 Not Found");
-        http_response_code(404);
-        die();
-    }
-} else if ($_GET["upload"] == 1) {
-    while (true) {
-        $uploadRelativeFolder = "downloads/formulare/checklisten/own/";
-        $tD = realpath(dirname(__FILE__) . "/../../../" . $uploadRelativeFolder);
-        $length = 30;
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
-        }
-        $rand = $randomString;
-        $filename = $rand . ".pdf";
-        $tF = $tD . "/" . $rand . ".pdf";
-        if (!file_exists($tD)) {
-            break;
-        }
-        break;
-    }
+````ruby
+R:\app\config\initializers\constants\ckeditor_placeholders.rb
 
-
-    try {
-
-        // Undefined | Multiple Files | $_FILES Corruption Attack
-        // If this request falls under any of them, treat it invalid.
-        if (
-            !isset($_FILES['upfile']['error']) ||
-            is_array($_FILES['upfile']['error'])
-        ) {
-            var_dump($_FILES);
-            throw new RuntimeException('Invalid parameters.');
-        }
-
-        // Check $_FILES['upfile']['error'] value.
-        switch ($_FILES['upfile']['error']) {
-            case UPLOAD_ERR_OK:
-                break;
-            case UPLOAD_ERR_NO_FILE:
-                throw new RuntimeException('No file sent.');
-            case UPLOAD_ERR_INI_SIZE:
-            case UPLOAD_ERR_FORM_SIZE:
-                throw new RuntimeException('Exceeded filesize limit.');
-            default:
-                throw new RuntimeException('Unknown errors.');
-        }
-
-        // You should also check filesize here.
-        if ($_FILES['upfile']['size'] > 10000000) {
-            throw new RuntimeException('Exceeded filesize limit.');
-        }
-
-        // DO NOT TRUST $_FILES['upfile']['mime'] VALUE !!
-        // Check MIME Type by yourself.
-//        $finfo = new finfo(FILEINFO_MIME_TYPE);
-//        if (false === $ext = array_search(
-//                $finfo->file($_FILES['upfile']['tmp_name']),
-//                array(
-//                    'pdf' => 'application/pdf',
-//                ),
-//                true
-//            )) {
-//            throw new RuntimeException('Invalid file format.');
-//        }
-
-        // You should name it uniquely.
-        // DO NOT USE $_FILES['upfile']['name'] WITHOUT ANY VALIDATION !!
-        // On this example, obtain safe unique string from above.
-        if (!move_uploaded_file(
-            $_FILES['upfile']['tmp_name'],
-            $tF
-        )
-        ) {
-            throw new RuntimeException('Failed to move uploaded file.');
-        }
-
-        $sql = "INSERT INTO can_checklisten (checkl_name,checkl_url,checkl_marke) VALUES ('" .
-            mysql_real_escape_string($_POST["pdfName"]) . "', '" . $uploadRelativeFolder . $filename . "', 'OWN')";
-        $result = mysql_query($sql, $dbi);
-        if (mysql_affected_rows() == 0) {
-            throw new RuntimeException('DB insert failed');
-        }
-    } catch (RuntimeException $e) {
-
-        echo $e->getMessage();
-        header("HTTP/1.0 404 Not Found");
-//        http_response_code(404);
-        die();
-
-    }
-    echo $tF;
-    exit();
-} else if ($_GET["getLast"] == 1) {
-    $sql = "SELECT id, checkl_name,checkl_url FROM can_checklisten ORDER BY id DESC LIMIT 1";
-    $query = mysql_query($sql, $dbi);
-    list($id, $name, $url) = mysql_fetch_row($query);
-    $out = "<li class='list_item'>" .
-        "<span class='pdfPreview input-text-1-wtp button-gray-1-wtp button-1-wtp' data-url='/eins/html/" . $url . "'>" .
-        "<span class='pdfPreviewText input-text-1-wtp'>" . $name . "</span></span>" .
-        "<div id='delete_" . $id . "' class='deletePdf button-1-wtp'>" .
-        "<span class='ui-icon ui-icon-trash deleteIcon '></span>" .
-        "</div>" .
-        "</li>";
-    echo $out;
-} else if (isset($_GET["checkbox"]) && ($_GET["checkbox"] == 0 || $_GET["checkbox"] == 1)) {
-    $sql = "SELECT * FROM can_wiedenn WHERE wie_module = 'Eigene Checklisten wenn keine markenspezifischen' AND wie_hdl = '$autohauskonto_nr' LIMIT 1";
-    $result = mysql_query($sql, $dbi);
-    if (mysql_num_rows($result) < 1) {
-        $sql = "INSERT INTO can_wiedenn (wie_module, wie_onoff, wie_hdl, wie_firma, wie_filiale) " .
-            "VALUES ('Eigene Checklisten wenn keine markenspezifischen', '" . $_GET["checkbox"] . "', $autohauskonto_nr, 999, 999)";
-        $res = mysql_query($sql, $dbi) or die(mysql_error());
-        echo "insert";
-    } else {
-        $sql = "UPDATE can_wiedenn SET wie_onoff = " . $_GET["checkbox"] . " WHERE wie_module ='Eigene Checklisten wenn keine markenspezifischen'";
-        $res = mysql_query($sql, $dbi) or die(mysql_error());
-        echo "changed";
-    }
-} else if (isset($_GET["dontFlatten"]) && ($_GET["dontFlatten"] == 0 || $_GET["dontFlatten"] == 1)) {
-    $sql = "SELECT * FROM can_wiedenn WHERE wie_module = 'Formularfelder auf Checklisten bearbeitbar lassen' AND wie_hdl = '$autohauskonto_nr' LIMIT 1";
-    $result = mysql_query($sql, $dbi);
-    if (mysql_num_rows($result) < 1) {
-        $sql = "INSERT INTO can_wiedenn (wie_module, wie_onoff, wie_hdl, wie_firma, wie_filiale) " .
-            "VALUES ('Formularfelder auf Checklisten bearbeitbar lassen', '" . $_GET["dontFlatten"] . "', $autohauskonto_nr, 999, 999)";
-        $res = mysql_query($sql, $dbi) or die(mysql_error());
-        echo "insert";
-    } else {
-        $sql = "UPDATE can_wiedenn SET wie_onoff = " . $_GET["dontFlatten"] . " WHERE wie_module ='Formularfelder auf Checklisten bearbeitbar lassen'";
-        $res = mysql_query($sql, $dbi) or die(mysql_error());
-        echo "changed";
-    }
-}
+CKEDITOR_PLACEHOLDERS = [
+    ['__HDL_NAME__', 'Händler', 'Händlername'],
+    ['__WP_AUTO__', 'Auto-Bezeichnung', 'Auto'],
+    ['__WP_KENNZ__', 'Kennzeichen', 'Kennzeichen'],
+    ['__BENUTZER_NAME__', 'Benutzername'],
+    ['__WP_DATUM__', 'Termindatum', 'Termindatum'],
+    ['__WP_ZEIT__', 'Terminzeit', 'Terminzeit'],
+    ['__ABHOLDATUM__', 'Abholdatum', 'Abholdatum'],
+    ['__ABHOLZEIT__', 'Abholzeit', 'Abholzeit'],
+    ['__ERSATZWAGEN__', 'Ersatzwagen', 'Ersatzwagen'],
+    ['__EINGRIFFE_BLOCK__', 'Eingriffe'],
+    ['__EINGRIFFE_FORTLAUFEND__', 'Eingriffe fortlaufend'],
+    ['__KUNDENBERATER__', 'Kundenberater'],
+    ['__MARKE__', 'Marke']
+]
 ````
+Get Placeholders and add new custom placeholders if exist.
+
+````ruby
+  def get_placeholders
+    appointment_id = params[:appointment_id]
+    if appointment_id.nil? || appointment_id.to_i < 1
+      # grab default ckeditor placholder
+      default_placeholder = CKEDITOR_PLACEHOLDERS
+      default_placeholder_as_string = JSON.generate(CKEDITOR_PLACEHOLDERS)
+      # also check the custom placeholder
+      check_custom_placeholder = PlaceholderSetting.all
+      # if custom placeholder exist then add into default placeholder
+      if check_custom_placeholder
+        check_custom_placeholder.each do |single|
+          if default_placeholder_as_string.include? single.custom_placeholder_value
+          else
+            new_array = [single.custom_placeholder_value, single.custom_placeholder_name, single.id]
+            default_placeholder.push(new_array)
+          end
+        end
+      end
+      placeholders = JSON.generate(CKEDITOR_PLACEHOLDERS)
+    else
+      placeholders = translate_placeholders(text:      JSON.generate(CKEDITOR_PLACEHOLDERS), appointment_id: params[:appointment_id],
+                                            branch_id: params[:branch_id], user_id: params[:user_id])
+    end
+
+    render :json => JSON.parse(placeholders)
+  end
+````
+
+
 <sup align="right"><a href="#table-of-contents">Go to top</a></sup>
 
 <!-- CONTACT -->
