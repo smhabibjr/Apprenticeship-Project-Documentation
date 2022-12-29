@@ -1,16 +1,14 @@
 # If-then-otherwise Placeholder Administration (Extend ckeditor-4 Toolbar)
 
 
-![image](https://user-images.githubusercontent.com/77357735/183103255-08c8187a-808e-47b0-b19b-18babdb1ff14.png)
+![image](https://user-images.githubusercontent.com/77357735/209977285-454039bf-64cb-4570-bfb9-7e23f558d978.png)
 
 
 <!-- TABLE OF CONTENTS -->
 
 ## Table of Contents
 
-- [Project Description](#project-description)
-- [Technologies and Programing Languages](#technologies-and-programming-languages)
-- Frontend Design
+- Add new toolbar icon in ckeditor
   - [Frontend Design HTML](#frontend-design-html)
   - [Frontend Design CSS](#frontend-design-css)
   - [Frontend Design JavaScript](#frontend-design-javascript)
