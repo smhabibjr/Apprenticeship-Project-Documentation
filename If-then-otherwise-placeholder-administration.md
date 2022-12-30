@@ -606,7 +606,7 @@ CKEDITOR_PLACEHOLDERS = [
     ['__MARKE__', 'Marke']
 ]
 ````
-Get Placeholders and add new custom placeholders if exist.
+Get all Placeholders (Default + custom placeholders if exist).
 
 ````ruby
   def get_placeholders
@@ -636,6 +636,121 @@ Get Placeholders and add new custom placeholders if exist.
     render :json => JSON.parse(placeholders)
   end
 ````
+Save new custom placeholder or update existing placeholder to the DB
+
+````ruby
+ def save_placeholders
+    # initial empty array to store success and error
+    error_occured = []
+    success_data = []
+    # grab the form parameters
+    placeholder_data = JSON.parse(params[:placeholder_data])
+    # if parameters received then create a new placeholder
+    if placeholder_data['placeholder_db_id'].to_i > 0
+      begin
+        CKEDITOR_PLACEHOLDERS.delete_if{|x| x[2].to_s === placeholder_data['placeholder_db_id'].to_s}
+        new_placeholder_value = "__" + placeholder_data['new_placeholder_name'].parameterize.underscore.upcase + "__"
+        update_existing_placeholder = PlaceholderSetting.find_by(id: placeholder_data['placeholder_db_id']).update(
+            custom_placeholder_name:    placeholder_data['new_placeholder_name'],
+            custom_placeholder_value:   new_placeholder_value,
+            placeholder_name:           placeholder_data['placeholder_name'],
+            placeholder_value:          placeholder_data['placeholder_value'],
+            compare_value:              placeholder_data['compare_name'],
+            compare_with:               placeholder_data['compare_with'],
+            dann_text:                  placeholder_data['dann_text'],
+            sonst_text:                 placeholder_data['sonst_text']
+        )
+        if update_existing_placeholder
+          success_data.push({
+                                status:   "Platzhalter erfolgreich aktualisiert"
+                            })
+        end
+      rescue Exception => e
+        error_occured.push(:error_msh => "Datensatz nicht aktualisiert.")
+        puts e.to_s
+      end
+    else
+      begin
+        new_placeholder_value = "__" + placeholder_data['new_placeholder_name'].parameterize.underscore.upcase + "__"
+        # check the placeholder already exists or not
+        if PlaceholderSetting.where(
+            custom_placeholder_name:    placeholder_data['new_placeholder_name'],
+            custom_placeholder_value:   new_placeholder_value,
+            branch_id:                  placeholder_data['branch_id']).present?
+          error_occured.push({status: "Platzhalter ist bereits vorhanden"})
+        else
+          # if dose not exist create a new placeholder
+          create_new_placeholder = PlaceholderSetting.create(
+              branch_id:                placeholder_data['branch_id'],
+              custom_placeholder_name:  placeholder_data['new_placeholder_name'],
+              custom_placeholder_value: new_placeholder_value,
+              placeholder_name:         placeholder_data['placeholder_name'],
+              placeholder_value:        placeholder_data['placeholder_value'],
+              compare_value:            placeholder_data['compare_name'],
+              compare_with:             placeholder_data['compare_with'],
+              dann_text:                placeholder_data['dann_text'],
+              sonst_text:               placeholder_data['sonst_text'])
+          if create_new_placeholder
+            success_data.push({
+                                  saved_placeholder_name:   create_new_placeholder['custom_placeholder_name'],
+                                  saved_placeholder_value:  create_new_placeholder['custom_placeholder_value'],
+                                  status:                   "Platzhalter erfolgreich gespeichert"
+                              })
+          end
+        end
+
+      rescue Exception => e
+        error_occured.push(:error_msh => "Datensatz nicht erstellt.")
+        puts e.to_s
+      end
+    end
+
+    if error_occured.length > 0
+      # then render head not found
+      render :status => :not_found, :json => error_occured
+    else
+      # otherwise send ok status
+      render :json => success_data
+    end
+  end
+````
+
+Delete custom existing placeholder
+
+````ruby
+def delete_existing_placeholder
+    error_occured = []
+    success_date = []
+    if params[:delete_placeholder_id].to_i > 0
+      begin
+        CKEDITOR_PLACEHOLDERS.delete_if{|x| x[2].to_s === params['delete_placeholder_id'].to_s}
+        delete_placeholder = PlaceholderSetting.find_by(id: params[:delete_placeholder_id].to_i).destroy
+        if delete_placeholder
+          success_date.push({
+                                status: "Platzhalter erfolgreich gelöscht"
+                            })
+
+        else
+          success_date.push({
+                                status: "Platzhalter nicht gelöscht"
+                            })
+        end
+      rescue Exception => e
+        error_occured.push(:err_msh => "Something went wrong")
+        puts e.to_s
+      end
+    end
+
+    if error_occured.length > 0
+      render :status => :not_found, :json => error_occured
+    else
+      render :json => success_date
+    end
+  end
+  ````
+
+
+
 
 
 <sup align="right"><a href="#table-of-contents">Go to top</a></sup>
