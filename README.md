@@ -8,5 +8,6 @@ Back in 2019, I joined ACS Systemhaus GmbH in Germany as an Intern student in th
 - [Dialog acceptance management](https://github.com/smhabibjr/Apprenticeship-Project-Documentation/blob/main/DialogAcceptanceManagement.md)
 - [Holiday Administration](https://github.com/smhabibjr/Apprenticeship-Project-Documentation/blob/main/HolidayAdministration.md)
 - [If-then-otherwise Placeholder Administration (Extend ckeditor-4 Toolbar)](https://github.com/smhabibjr/Apprenticeship-Project-Documentation/blob/main/If-then-otherwise-placeholder-administration.md)
+- [Appointment Search Box](https://github.com/smhabibjr/Apprenticeship-Project-Documentation/blob/main/appointment-search-box.md)
 
 <!-- HOW TO RUN -->
